@@ -5,7 +5,8 @@ on:
     types:
       - closed
     branches:
-      - master
+      - 1.20.1
+      - 1.21.1
     paths:
       - CHANGELOG.md
   workflow_dispatch:
