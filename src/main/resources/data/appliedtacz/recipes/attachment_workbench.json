@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "forge:partial_nbt",
+      "item": "tacz:workbench_c",
+      "nbt": "{BlockId:\"tacz:attachment_workbench\"}"
+    },
+    {
+      "item": "ae2:storage_bus"
+    }
+  ],
+  "result": {
+    "item": "appliedtacz:attachment_workbench"
+  }
+}

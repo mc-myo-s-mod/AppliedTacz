@@ -66,7 +66,7 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
         super(menu, inventory, title);
     }
 
-    @Inject(method = "render", at = @At("TAIL"), remap = false)
+    @Inject(method = "render", at = @At("TAIL"), remap = true)
     void appliedTacz$renderNetworkStatus(GuiGraphics graphics, int mouseX, int mouseY, float partialTick,
             CallbackInfo ci) {
         if (!(this.menu instanceof AEGunSmithTableMenu aeMenu)) {
