@@ -109,6 +109,11 @@ jobs:
           name: ${{ needs.build.outputs.artifact_name }}
           version: ${{ needs.build.outputs.mc_version }}-${{ needs.build.outputs.mod_version }}
 
+          dependencies: |
+            ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
+            timeless-and-classics-zero(required){modrinth:SzzJttH8}{curseforge:1028108}
+            
+
   publish-to-modrinth:
     if: (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) && vars.MODRINTH_PROJECT_ID != ''
     runs-on: ubuntu-latest
@@ -133,3 +138,8 @@ jobs:
           files: ${{ needs.build.outputs.artifact_path }}
           name: ${{ needs.build.outputs.artifact_name }}
           version: ${{ needs.build.outputs.mc_version }}-${{ needs.build.outputs.mod_version }}
+
+          dependencies: |
+            ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
+            timeless-and-classics-zero(required){modrinth:SzzJttH8}{curseforge:1028108}
+

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "type": "forge:partial_nbt",
+      "item": "tacz:workbench_a",
+      "nbt": "{BlockId:\"tacz:ammo_workbench\"}"
+    },
+    {
+      "item": "ae2:storage_bus"
+    }
+  ],
+  "result": {
+    "item": "appliedtacz:ammo_workbench"
+  }
+}
