@@ -1,0 +1,45 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "functions": [
+        {
+          "function": "minecraft:copy_nbt",
+          "ops": [
+            {
+              "op": "replace",
+              "source": "BlockId",
+              "target": "BlockId"
+            }
+          ],
+          "source": {
+            "type": "context",
+            "target": "block_entity"
+          }
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "appliedtacz:gun_smith_table",
+              "properties": {
+                "part": "foot"
+              }
+            }
+          ],
+          "name": "appliedtacz:gun_smith_table"
+        }
+      ],
+      "rolls": 1
+    }
+  ]
+}

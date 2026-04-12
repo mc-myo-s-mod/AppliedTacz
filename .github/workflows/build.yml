@@ -1,0 +1,176 @@
+name: build mod
+
+on:
+  pull_request:
+    branches:
+      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      java_version: ${{ steps.vars.outputs.java_version }}
+      artifact_name: ${{ steps.vars.outputs.artifact_name }}
+      artifact_path: ${{ steps.vars.outputs.artifact_path }}
+      mc_version: ${{ steps.vars.outputs.mc_version }}
+      mod_version: ${{ steps.vars.outputs.mod_version }}
+      mod_loader: ${{ steps.vars.outputs.mod_loader }}
+      version_type: ${{ steps.vars.outputs.version_type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read variables from gradle.properties
+        id: vars
+        shell: bash
+        run: |
+          java_version=$(grep '^java_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "java_version=$java_version" >> "$GITHUB_OUTPUT"
+
+          mc_version=$(grep '^minecraft_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mc_version=$mc_version" >> "$GITHUB_OUTPUT"
+
+          mod_version=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mod_version=$mod_version" >> "$GITHUB_OUTPUT"
+
+          mod_loader=$(grep '^mod_loader=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mod_loader=$mod_loader" >> "$GITHUB_OUTPUT"
+
+          version_type=$(grep '^mod_version_type=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "version_type=$version_type" >> "$GITHUB_OUTPUT"
+
+          archives_base_name=$(grep '^archives_base_name=' gradle.properties | cut -d'=' -f2- | tr -d '\r')
+          artifact_base_name="${archives_base_name}-${mc_version}"
+          echo "artifact_name=${artifact_base_name}-${mod_version}" >> "$GITHUB_OUTPUT"
+          echo "artifact_path=build/libs/${artifact_base_name}-${mod_version}-all.jar" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: ${{ steps.vars.outputs.java_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build --console=plain
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}
+          path: |
+            ${{ steps.vars.outputs.artifact_path }}
+            CHANGELOG.md
+            readme/modrinth-readme.md
+            readme/curseforge-readme.md
+            readme/icon-400.png
+
+  run-server-smoke:
+    runs-on: windows-latest
+    needs: build
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: ${{ needs.build.outputs.java_version }}
+          cache: gradle
+
+      - name: Accept EULA for CI
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path run | Out-Null
+          Set-Content -Path run/eula.txt -Value @'
+          # Accepted automatically by GitHub Actions smoke test.
+          eula=true
+          '@
+
+      - name: Start dedicated server and wait for Done
+        shell: pwsh
+        run: |
+          $stdoutLog = Join-Path $PWD "runServer.stdout.log"
+          $stderrLog = Join-Path $PWD "runServer.stderr.log"
+
+          Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue
+          Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue
+
+          $server = Start-Process cmd.exe `
+            -ArgumentList "/c", "gradlew.bat runServer --console=plain" `
+            -WorkingDirectory $PWD `
+            -RedirectStandardOutput $stdoutLog `
+            -RedirectStandardError $stderrLog `
+            -PassThru
+
+          try {
+            $deadline = (Get-Date).AddMinutes(6)
+            $done = $false
+
+            while ((Get-Date) -lt $deadline) {
+              Start-Sleep -Seconds 5
+
+              if (Test-Path $stdoutLog) {
+                $output = Get-Content $stdoutLog -Raw
+
+                if ($output -match 'Done \([^)]+\)! For help, type "help"') {
+                  $done = $true
+                  break
+                }
+
+                if ($output -match 'You need to agree to the EULA' -or
+                    $output -match 'ModLoadingException') {
+                  break
+                }
+              }
+
+              if ($server.HasExited) {
+                break
+              }
+            }
+
+            if (-not $done) {
+              if (Test-Path $stdoutLog) {
+                Write-Host "Last server stdout lines:"
+                Get-Content $stdoutLog | Select-Object -Last 200
+              }
+
+              if (Test-Path $stderrLog) {
+                Write-Host "Last server stderr lines:"
+                Get-Content $stderrLog | Select-Object -Last 200
+              }
+
+              throw "Dedicated server did not reach the Done state."
+            }
+          } finally {
+            if (-not $server.HasExited) {
+              cmd.exe /c "taskkill /PID $($server.Id) /T /F" | Out-Null
+              Start-Sleep -Seconds 2
+            }
+          }
+
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runServer-logs
+          path: |
+            runServer.stdout.log
+            runServer.stderr.log
+            run/logs/**

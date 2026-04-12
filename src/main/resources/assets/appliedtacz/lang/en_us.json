@@ -1,0 +1,13 @@
+{
+  "itemGroup.appliedtacz": "Applied TaCZ",
+  "block.appliedtacz.gun_smith_table": "ME Gun Smith Table",
+  "block.appliedtacz.ammo_workbench": "ME Ammo Workbench",
+  "block.appliedtacz.attachment_workbench": "ME Attachment Workbench",
+  "gui.appliedtacz.ae_network": "AE2 Network: %s",
+  "gui.appliedtacz.ae_network.connected": "Online",
+  "gui.appliedtacz.ae_network.booting": "Booting",
+  "gui.appliedtacz.ae_network.no_channel": "No Channel",
+  "gui.appliedtacz.ae_network.offline": "Offline",
+  "gui.appliedtacz.ae_network.tooltip": "Shows whether this workbench is currently connected to the AE2 network.",
+  "tooltip.appliedtacz.ae_support": "AE Support"
+}

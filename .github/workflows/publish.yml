@@ -1,0 +1,134 @@
+name: Publish to Modrinth & CurseForge
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - master
+    paths:
+      - CHANGELOG.md
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      java_version: ${{ steps.vars.outputs.java_version }}
+      artifact_name: ${{ steps.vars.outputs.artifact_name }}
+      artifact_path: ${{ steps.vars.outputs.artifact_path }}
+      mc_version: ${{ steps.vars.outputs.mc_version }}
+      mod_version: ${{ steps.vars.outputs.mod_version }}
+      mod_loader: ${{ steps.vars.outputs.mod_loader }}
+      version_type: ${{ steps.vars.outputs.version_type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read variables from gradle.properties
+        id: vars
+        shell: bash
+        run: |
+          java_version=$(grep '^java_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "java_version=$java_version" >> "$GITHUB_OUTPUT"
+
+          mc_version=$(grep '^minecraft_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mc_version=$mc_version" >> "$GITHUB_OUTPUT"
+
+          mod_version=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mod_version=$mod_version" >> "$GITHUB_OUTPUT"
+
+          mod_loader=$(grep '^mod_loader=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "mod_loader=$mod_loader" >> "$GITHUB_OUTPUT"
+
+          version_type=$(grep '^mod_version_type=' gradle.properties | cut -d'=' -f2 | tr -d ' \r')
+          echo "version_type=$version_type" >> "$GITHUB_OUTPUT"
+
+          archives_base_name=$(grep '^archives_base_name=' gradle.properties | cut -d'=' -f2- | tr -d '\r')
+          artifact_base_name="${archives_base_name}-${mc_version}"
+          echo "artifact_name=${artifact_base_name}-${mod_version}" >> "$GITHUB_OUTPUT"
+          echo "artifact_path=build/libs/${artifact_base_name}-${mod_version}-all.jar" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: ${{ steps.vars.outputs.java_version }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew build --console=plain
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.vars.outputs.artifact_name }}
+          path: |
+            ${{ steps.vars.outputs.artifact_path }}
+            CHANGELOG.md
+            readme/modrinth-readme.md
+            readme/curseforge-readme.md
+            readme/icon-400.png
+
+  publish-to-curseforge:
+    if: (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) && vars.CURSEFORGE_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+
+      - name: Publish to CurseForge
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          changelog-file: CHANGELOG.md
+          game-versions: ${{ needs.build.outputs.mc_version }}
+          loaders: ${{ needs.build.outputs.mod_loader }}
+          version-type: ${{ needs.build.outputs.version_type }}
+
+          files: ${{ needs.build.outputs.artifact_path }}
+          name: ${{ needs.build.outputs.artifact_name }}
+          version: ${{ needs.build.outputs.mc_version }}-${{ needs.build.outputs.mod_version }}
+
+  publish-to-modrinth:
+    if: (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true) && vars.MODRINTH_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+
+      - name: Publish to Modrinth
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+
+          changelog-file: CHANGELOG.md
+          game-versions: ${{ needs.build.outputs.mc_version }}
+          loaders: ${{ needs.build.outputs.mod_loader }}
+          version-type: ${{ needs.build.outputs.version_type }}
+
+          files: ${{ needs.build.outputs.artifact_path }}
+          name: ${{ needs.build.outputs.artifact_name }}
+          version: ${{ needs.build.outputs.mc_version }}-${{ needs.build.outputs.mod_version }}
