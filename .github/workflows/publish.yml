@@ -56,7 +56,7 @@ jobs:
           archives_base_name=$(grep '^archives_base_name=' gradle.properties | cut -d'=' -f2- | tr -d '\r')
           artifact_base_name="${archives_base_name}-${mc_version}"
           echo "artifact_name=${artifact_base_name}-${mod_version}" >> "$GITHUB_OUTPUT"
-          echo "artifact_path=build/libs/${artifact_base_name}-${mod_version}-all.jar" >> "$GITHUB_OUTPUT"
+          echo "artifact_path=build/libs/${artifact_base_name}-${mod_version}.jar" >> "$GITHUB_OUTPUT"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -142,4 +142,3 @@ jobs:
           dependencies: |
             ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
             timeless-and-classics-zero(required){modrinth:SzzJttH8}{curseforge:1028108}
-
