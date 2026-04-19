@@ -1,5 +1,7 @@
 # ChangeLog
 
-## Feature
-- First Release
-- Maybe add other mod's workbench
+## Feature 
+- update forge version range
+
+## Bug Fixes
+- fix blacksmith table recipe
