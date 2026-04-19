@@ -3,10 +3,7 @@
   "category": "misc",
   "ingredients": [
     {
-      "item": "tacz:gun_smith_table",
-      "type": "forge:partial_nbt",
-      "nbt": "{BlockId:\"tacz:gun_smith_table\"}"
-
+      "item": "tacz:gun_smith_table"
     },
     {
       "item": "ae2:storage_bus"
