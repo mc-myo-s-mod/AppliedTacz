@@ -15,7 +15,7 @@ import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.init.AETaCZBlockEntity;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
-import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -150,7 +150,7 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
         if (tag.contains(ID_TAG, Tag.TAG_STRING)) {
             this.id = ResourceLocation.tryParse(tag.getString(ID_TAG));
         } else {
-            this.id = AETaCZWorkbenchIds.getDefaultBlockId(getBlockState().getBlock());
+            this.id = AETaCZWorkbenchIndex.getDefaultBlockId(getBlockState().getBlock());
         }
     }
 

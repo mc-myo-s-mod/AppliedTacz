@@ -1,13 +1,11 @@
 package me.myogoo.appliedtacz.compat.jei;
 
 import com.tacz.guns.GunMod;
-import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IBlock;
-import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
 import me.myogoo.appliedtacz.AppliedTaCZ;
-import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
@@ -30,16 +28,8 @@ public class AppliedTaczJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        for (var entry : TimelessAPI.getAllCommonBlockIndex()) {
-            ResourceLocation blockId = entry.getKey();
-            ResourceLocation baseWorkbenchId = entry.getValue().getPojo().getId();
-            WorkbenchUpgradeKind kind = WorkbenchUpgradeKind.fromBaseWorkbench(baseWorkbenchId);
-            if (kind == null) {
-                continue;
-            }
-
-            ItemStack catalyst = BlockItemBuilder.create(kind.result()).setId(blockId).build();
-            registration.addRecipeCatalyst(catalyst, recipeType(blockId));
+        for (var entry : AETaCZWorkbenchIndex.entries()) {
+            registration.addRecipeCatalyst(entry.createAppliedStack(), recipeType(entry.blockId()));
         }
     }
 

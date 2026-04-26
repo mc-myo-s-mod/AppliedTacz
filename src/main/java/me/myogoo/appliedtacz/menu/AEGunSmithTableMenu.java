@@ -19,7 +19,7 @@ import me.myogoo.appliedtacz.init.AETaczMenu;
 import me.myogoo.appliedtacz.mixin.GunSmithTableMenuAccessor;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
 import me.myogoo.appliedtacz.network.packet.SyncIngredientCountsPacket;
-import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -61,7 +61,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
     private Int2IntArrayMap lastSentCounts = new Int2IntArrayMap();
 
     public AEGunSmithTableMenu(int id, Inventory inventory, @Nullable AEGunSmithTableBlockEntity blockEntity) {
-        this(id, inventory, blockEntity, AETaCZWorkbenchIds.getMenuBlockId(blockEntity));
+        this(id, inventory, blockEntity, AETaCZWorkbenchIndex.getMenuBlockId(blockEntity));
     }
 
     public AEGunSmithTableMenu(int id, Inventory inventory, @Nullable AEGunSmithTableBlockEntity blockEntity,
