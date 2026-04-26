@@ -11,10 +11,10 @@ import net.minecraftforge.client.event.RegisterItemDecorationsEvent;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
 
 public final class AETaCZItemDecorators {
-    private static final ResourceLocation STORAGE_BUS_BADGE = ResourceLocation.fromNamespaceAndPath("ae2",
-            "textures/part/storage_bus.png");
+    private static final ResourceLocation INTERFACE_BADGE = ResourceLocation.fromNamespaceAndPath("ae2",
+            "textures/block/interface.png");
     private static final int BADGE_SIZE = 7;
-    private static final IItemDecorator WORKBENCH_BADGE = new StorageBusBadgeDecorator();
+    private static final IItemDecorator WORKBENCH_BADGE = new InterfaceBadgeDecorator();
 
     private AETaCZItemDecorators() {
     }
@@ -25,7 +25,7 @@ public final class AETaCZItemDecorators {
         event.register(AETaCZBlock.ATTACHMENT_TABLE.get(), WORKBENCH_BADGE);
     }
 
-    private static final class StorageBusBadgeDecorator implements IItemDecorator {
+    private static final class InterfaceBadgeDecorator implements IItemDecorator {
         @Override
         public boolean render(GuiGraphics graphics, Font font, ItemStack stack, int xOffset, int yOffset) {
             int badgeX = xOffset + 9;
@@ -33,7 +33,7 @@ public final class AETaCZItemDecorators {
 
             graphics.pose().pushPose();
             graphics.pose().translate(0.0F, 0.0F, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10.0F);
-            graphics.blit(STORAGE_BUS_BADGE, badgeX, badgeY, BADGE_SIZE, BADGE_SIZE, 0, 0, 16, 16, 16, 16);
+            graphics.blit(INTERFACE_BADGE, badgeX, badgeY, BADGE_SIZE, BADGE_SIZE, 0, 0, 16, 16, 16, 16);
             graphics.pose().popPose();
             return false;
         }

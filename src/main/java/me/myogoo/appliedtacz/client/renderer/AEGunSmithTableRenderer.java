@@ -8,7 +8,7 @@ import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import com.tacz.guns.client.model.bedrock.BedrockModel;
 import com.tacz.guns.client.resource.index.ClientBlockIndex;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
-import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -25,7 +25,7 @@ public class AEGunSmithTableRenderer implements BlockEntityRenderer<AEGunSmithTa
     }
 
     private Optional<ClientBlockIndex> getIndex(AEGunSmithTableBlockEntity blockEntity) {
-        ResourceLocation id = AETaCZWorkbenchIds.getMenuBlockId(blockEntity);
+        ResourceLocation id = AETaCZWorkbenchIndex.getMenuBlockId(blockEntity);
         if (id == null || id.equals(DefaultAssets.EMPTY_BLOCK_ID)) {
             return Optional.empty();
         }

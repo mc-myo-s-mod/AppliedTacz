@@ -171,6 +171,8 @@ dependencies {
 
     runtimeOnly fg.deobf("org.appliedenergistics:guideme:${guideME_version}")
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${JEI_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${JEI_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${JEI_version}")
 
     implementation fg.deobf("curse.maven:timeless-and-classics-zero-1028108:7278003")
 

@@ -4,7 +4,7 @@ import com.tacz.guns.api.item.nbt.BlockItemDataAccessor;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
-import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -46,7 +46,7 @@ public class AttachmentTable extends GunSmithTableBlockC {
                     }
                 }, buf -> {
                     buf.writeBlockPos(rootPos);
-                    buf.writeResourceLocation(AETaCZWorkbenchIds.getMenuBlockId(table));
+                    buf.writeResourceLocation(AETaCZWorkbenchIndex.getMenuBlockId(table));
                 });
             }
         }
@@ -65,7 +65,7 @@ public class AttachmentTable extends GunSmithTableBlockC {
         ResourceLocation blockId = stack.getItem() instanceof BlockItemDataAccessor accessor
                 ? accessor.getBlockId(stack)
                 : stack.getItem() instanceof BlockItem blockItem
-                        ? AETaCZWorkbenchIds.getDefaultBlockId(blockItem.getBlock())
+                        ? AETaCZWorkbenchIndex.getDefaultBlockId(blockItem.getBlock())
                         : null;
 
         syncBlockEntity(world, pos, blockId, placer);
