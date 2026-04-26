@@ -13,6 +13,7 @@ public final class AETaCZWorkbenchIds {
     public static final ResourceLocation ATTACHMENT_WORKBENCH_ID = ResourceLocation.fromNamespaceAndPath("tacz",
             "attachment_workbench");
     public static final ResourceLocation WORKBENCH_A_ID = ResourceLocation.fromNamespaceAndPath("tacz", "workbench_a");
+    public static final ResourceLocation WORKBENCH_B_ID = ResourceLocation.fromNamespaceAndPath("tacz", "workbench_b");
     public static final ResourceLocation WORKBENCH_C_ID = ResourceLocation.fromNamespaceAndPath("tacz", "workbench_c");
 
     private AETaCZWorkbenchIds() {
