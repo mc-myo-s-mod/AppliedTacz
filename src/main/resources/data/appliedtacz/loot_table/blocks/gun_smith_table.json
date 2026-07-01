@@ -10,7 +10,7 @@
       ],
       "functions": [
         {
-          "function": "minecraft:copy_nbt",
+          "function": "minecraft:copy_custom_data",
           "ops": [
             {
               "op": "replace",
@@ -30,10 +30,13 @@
           "conditions": [
             {
               "condition": "minecraft:block_state_property",
-              "block": "appliedtacz:ammo_workbench"
+              "block": "appliedtacz:gun_smith_table",
+              "properties": {
+                "part": "foot"
+              }
             }
           ],
-          "name": "appliedtacz:ammo_workbench"
+          "name": "appliedtacz:gun_smith_table"
         }
       ],
       "rolls": 1
