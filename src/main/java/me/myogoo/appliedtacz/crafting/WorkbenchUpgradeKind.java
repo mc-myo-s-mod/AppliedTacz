@@ -5,10 +5,8 @@ import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import com.tacz.guns.block.GunSmithTableBlockA;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.registry.ModBlocks;
-import me.myogoo.appliedtacz.registry.ModRecipeSerializers;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
@@ -58,14 +56,6 @@ public enum WorkbenchUpgradeKind {
 
     public boolean acceptsBaseWorkbench(ResourceLocation baseWorkbenchId) {
         return baseWorkbenchIds.contains(baseWorkbenchId);
-    }
-
-    public RecipeSerializer<?> serializer() {
-        return switch (this) {
-            case GUN_SMITH_TABLE -> ModRecipeSerializers.GUN_SMITH_TABLE_UPGRADE.get();
-            case AMMO_WORKBENCH -> ModRecipeSerializers.AMMO_WORKBENCH_UPGRADE.get();
-            case ATTACHMENT_WORKBENCH -> ModRecipeSerializers.ATTACHMENT_WORKBENCH_UPGRADE.get();
-        };
     }
 
     public static @Nullable WorkbenchUpgradeKind fromBaseWorkbench(Block baseWorkbench) {

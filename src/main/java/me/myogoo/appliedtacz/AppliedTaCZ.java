@@ -10,7 +10,6 @@ import me.myogoo.appliedtacz.registry.ModBlockEntities;
 import me.myogoo.appliedtacz.registry.ModBlocks;
 import me.myogoo.appliedtacz.registry.ModItems;
 import me.myogoo.appliedtacz.registry.ModMenus;
-import me.myogoo.appliedtacz.registry.ModRecipeSerializers;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
@@ -31,7 +30,6 @@ public class AppliedTaCZ {
         ModItems.ITEMS.register(modEventBus);
         ModMenus.MENUS.register(modEventBus);
         ModBlockEntities.BLOCK_ENTITIES.register(modEventBus);
-        ModRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
 
         modEventBus.addListener(this::addCreativeTabItems);
         modEventBus.addListener(this::registerCapabilities);
