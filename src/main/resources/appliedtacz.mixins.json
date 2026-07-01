@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.myogoo.appliedtacz.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "GunSmithTableMenuAccessor"
+  ],
+  "client": [
+    "client.CraftAmountScreenMixin",
+    "client.CraftConfirmScreenMixin",
+    "client.GunSmithTableScreenMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
