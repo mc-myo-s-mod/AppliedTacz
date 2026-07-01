@@ -1,6 +1,7 @@
 package me.myogoo.appliedtacz.network;
 
 import me.myogoo.appliedtacz.AppliedTaCZ;
+import me.myogoo.appliedtacz.network.packet.RequestIngredientAutocraftPacket;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientCountsPacket;
 import me.myogoo.appliedtacz.network.packet.SyncIngredientCountsPacket;
 import net.minecraft.resources.ResourceLocation;
@@ -34,6 +35,10 @@ public final class AppliedTaczNetwork {
                 RequestIngredientCountsPacket::encode,
                 RequestIngredientCountsPacket::decode,
                 RequestIngredientCountsPacket::handle);
+        CHANNEL.registerMessage(id++, RequestIngredientAutocraftPacket.class,
+                RequestIngredientAutocraftPacket::encode,
+                RequestIngredientAutocraftPacket::decode,
+                RequestIngredientAutocraftPacket::handle);
         CHANNEL.registerMessage(id, SyncIngredientCountsPacket.class,
                 SyncIngredientCountsPacket::encode,
                 SyncIngredientCountsPacket::decode,

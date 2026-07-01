@@ -2,12 +2,5 @@
   "itemGroup.appliedtacz": "Applied TaCZ",
   "block.appliedtacz.gun_smith_table": "ME 총기 작업대",
   "block.appliedtacz.ammo_workbench": "ME 탄약 작업대",
-  "block.appliedtacz.attachment_workbench": "ME 부착물 작업대",
-  "gui.appliedtacz.ae_network": "AE2 네트워크: %s",
-  "gui.appliedtacz.ae_network.connected": "연결됨",
-  "gui.appliedtacz.ae_network.booting": "부팅 중",
-  "gui.appliedtacz.ae_network.no_channel": "채널 없음",
-  "gui.appliedtacz.ae_network.offline": "오프라인",
-  "gui.appliedtacz.ae_network.tooltip": "작업대가 현재 AE2 네트워크에 연결되어 있는 상태입니다.",
-  "tooltip.appliedtacz.ae_support": "AE Support"
+  "block.appliedtacz.attachment_workbench": "ME 부착물 작업대"
 }

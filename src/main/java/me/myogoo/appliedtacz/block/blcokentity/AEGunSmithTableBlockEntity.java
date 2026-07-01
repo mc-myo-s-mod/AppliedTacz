@@ -7,10 +7,12 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.orientation.BlockOrientation;
 import appeng.api.orientation.RelativeSide;
+import appeng.api.storage.ISubMenuHost;
 import appeng.blockentity.AEBaseBlockEntity;
 import appeng.capabilities.Capabilities;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
+import appeng.menu.ISubMenu;
 import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.init.AETaCZBlockEntity;
@@ -23,14 +25,17 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +45,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
-        implements IGridConnectedBlockEntity, MenuProvider {
+        implements IGridConnectedBlockEntity, MenuProvider, ISubMenuHost {
     private static final String ID_TAG = "BlockId";
 
     private final IManagedGridNode mainNode = createMainNode()
@@ -248,6 +253,21 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
     @Override
     public @Nullable AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
         return new AEGunSmithTableMenu(id, inventory, this);
+    }
+
+    @Override
+    public void returnToMainMenu(Player player, ISubMenu subMenu) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            NetworkHooks.openScreen(serverPlayer, this, buf -> {
+                buf.writeBlockPos(this.worldPosition);
+                buf.writeResourceLocation(AETaCZWorkbenchIndex.getMenuBlockId(this));
+            });
+        }
+    }
+
+    @Override
+    public ItemStack getMainMenuIcon() {
+        return new ItemStack(getBlockState().getBlock());
     }
 
     public boolean isNetworkPowered() {

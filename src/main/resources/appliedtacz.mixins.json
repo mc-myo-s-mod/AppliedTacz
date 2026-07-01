@@ -8,6 +8,8 @@
     "GunSmithTableMenuAccessor"
   ],
   "client": [
+    "CraftAmountScreenMixin",
+    "CraftConfirmScreenMixin",
     "GunSmithTableScreenMixin"
   ],
   "injectors": {
