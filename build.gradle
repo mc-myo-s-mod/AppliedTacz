@@ -111,12 +111,11 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    compileOnly "org.appliedenergistics:appliedenergistics2:${AE2_version}"
-    runtimeOnly "org.appliedenergistics:appliedenergistics2:${AE2_version}"
-    compileOnly "maven.modrinth:tacz-1.21.1:${TaCZ_version}"
-    runtimeOnly "maven.modrinth:tacz-1.21.1:${TaCZ_version}"
+    implementation "org.appliedenergistics:appliedenergistics2:${AE2_version}"
+    implementation "maven.modrinth:tacz-1.21.1:${TaCZ_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${JEI_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
+    implementation "curse.maven:jade-324717:7545219"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${JEI_version}"
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository

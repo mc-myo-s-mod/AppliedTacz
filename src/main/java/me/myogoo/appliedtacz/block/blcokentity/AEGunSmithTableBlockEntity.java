@@ -5,9 +5,8 @@ import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IGridNodeListener;
-import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.networking.IManagedGridNode;
-import appeng.api.networking.security.IActionHost;
+import appeng.api.networking.energy.IEnergySource;
 import appeng.api.networking.storage.IStorageService;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
@@ -16,6 +15,8 @@ import appeng.api.storage.ISubMenuHost;
 import appeng.api.util.AECableType;
 import appeng.blockentity.AEBaseBlockEntity;
 import appeng.menu.ISubMenu;
+import appeng.me.helpers.IGridConnectedBlockEntity;
+import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.registry.ModBlockEntities;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
@@ -30,15 +31,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
-public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IInWorldGridNodeHost, IActionHost,
-        ISubMenuHost {
+public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGridConnectedBlockEntity, ISubMenuHost {
     private static final String ID_TAG = "BlockId";
     private static final IGridNodeListener<AEGunSmithTableBlockEntity> NODE_LISTENER = new IGridNodeListener<>() {
         @Override
@@ -56,7 +60,7 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
             .setInWorldNode(true)
             .setTagName("ae_node")
             .setVisualRepresentation(getBlockState().getBlock())
-            .setExposedOnSides(java.util.EnumSet.complementOf(java.util.EnumSet.of(Direction.UP)))
+            .setExposedOnSides(EnumSet.complementOf(EnumSet.of(Direction.UP)))
             .setIdlePowerUsage(1.0)
             .setFlags(GridFlags.REQUIRE_CHANNEL);
 
@@ -80,12 +84,12 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
     }
 
     public void setOwningPlayer(Player player) {
-        mainNode.setOwningPlayer(player);
+        getEffectiveMainNode().setOwningPlayer(player);
         saveChanges();
     }
 
     public @Nullable IStorageService getStorageService() {
-        var grid = mainNode.getGrid();
+        var grid = getEffectiveMainNode().getGrid();
         return grid != null ? grid.getStorageService() : null;
     }
 
@@ -94,12 +98,12 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
         return storageService != null ? storageService.getInventory() : null;
     }
 
-    public @Nullable appeng.api.networking.energy.IEnergySource getEnergySource() {
-        var grid = mainNode.getGrid();
+    public @Nullable IEnergySource getEnergySource() {
+        var grid = getEffectiveMainNode().getGrid();
         return grid != null ? grid.getEnergyService() : null;
     }
 
-    public List<AEItemKey> findBestMatchingItemStacks(net.minecraft.world.item.crafting.Ingredient ingredient) {
+    public List<AEItemKey> findBestMatchingItemStacks(Ingredient ingredient) {
         IStorageService storageService = getStorageService();
         if (storageService == null) {
             return List.of();
@@ -128,18 +132,23 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
     @Nullable
     @Override
     public IGridNode getGridNode(Direction dir) {
-        return dir == Direction.UP ? null : mainNode.getNode();
+        return canExposeNodeOnSide(dir) ? getEffectiveMainNode().getNode() : null;
+    }
+
+    @Override
+    public IManagedGridNode getMainNode() {
+        return getEffectiveMainNode();
     }
 
     @Override
     public AECableType getCableConnectionType(Direction dir) {
-        return dir == Direction.UP ? AECableType.NONE : AECableType.SMART;
+        return canExposeNodeOnSide(dir) ? AECableType.SMART : AECableType.NONE;
     }
 
     @Nullable
     @Override
     public IGridNode getActionableNode() {
-        return mainNode.getNode();
+        return getEffectiveMainNode().getNode();
     }
 
     @Override
@@ -164,13 +173,14 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
 
     @Override
     protected void writeToStream(RegistryFriendlyByteBuf data) {
+        IManagedGridNode effectiveNode = getEffectiveMainNode();
         data.writeBoolean(id != null);
         if (id != null) {
             data.writeResourceLocation(id);
         }
-        data.writeBoolean(mainNode.isPowered());
-        data.writeBoolean(mainNode.isOnline());
-        data.writeBoolean(mainNode.hasGridBooted());
+        data.writeBoolean(effectiveNode.isPowered());
+        data.writeBoolean(effectiveNode.isOnline());
+        data.writeBoolean(effectiveNode.hasGridBooted());
     }
 
     @Override
@@ -193,25 +203,32 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        GridHelper.onFirstTick(this, be -> be.mainNode.create(be.getLevel(), be.getBlockPos()));
+        if (isRootPart()) {
+            GridHelper.onFirstTick(this, be -> be.mainNode.create(be.getLevel(), be.getBlockPos()));
+        }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        mainNode.destroy();
+        if (isRootPart()) {
+            mainNode.destroy();
+        }
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
-        mainNode.destroy();
+        if (isRootPart()) {
+            mainNode.destroy();
+        }
     }
 
     private void syncNetworkState() {
-        boolean networkPowered = mainNode.isPowered();
-        boolean networkOnline = mainNode.isOnline();
-        boolean gridBooted = mainNode.hasGridBooted();
+        IManagedGridNode effectiveNode = getEffectiveMainNode();
+        boolean networkPowered = effectiveNode.isPowered();
+        boolean networkOnline = effectiveNode.isOnline();
+        boolean gridBooted = effectiveNode.hasGridBooted();
         if (networkPowered == clientNetworkPowered
                 && networkOnline == clientNetworkOnline
                 && gridBooted == clientGridBooted) {
@@ -243,14 +260,62 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IIn
     }
 
     public boolean isNetworkPowered() {
-        return level != null && level.isClientSide() ? clientNetworkPowered : mainNode.isPowered();
+        return level != null && level.isClientSide() ? clientNetworkPowered : getEffectiveMainNode().isPowered();
     }
 
     public boolean isNetworkOnline() {
-        return level != null && level.isClientSide() ? clientNetworkOnline : mainNode.isOnline();
+        return level != null && level.isClientSide() ? clientNetworkOnline : getEffectiveMainNode().isOnline();
     }
 
     public boolean hasBootedGrid() {
-        return level != null && level.isClientSide() ? clientGridBooted : mainNode.hasGridBooted();
+        return level != null && level.isClientSide() ? clientGridBooted : getEffectiveMainNode().hasGridBooted();
+    }
+
+    private boolean isRootPart() {
+        BlockState state = getBlockState();
+        return !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock) || tableBlock.isRoot(state);
+    }
+
+    private boolean canExposeNodeOnSide(@Nullable Direction dir) {
+        return dir != null && dir != Direction.UP && !isInternalMultiblockFace(dir);
+    }
+
+    private boolean isInternalMultiblockFace(Direction dir) {
+        Level level = getLevel();
+        BlockState state = getBlockState();
+        if (level == null || !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock)) {
+            return false;
+        }
+
+        BlockPos adjacentPos = getBlockPos().relative(dir);
+        BlockState adjacentState = level.getBlockState(adjacentPos);
+        if (!(adjacentState.getBlock() instanceof AbstractGunSmithTableBlock adjacentTableBlock)) {
+            return false;
+        }
+
+        BlockPos rootPos = tableBlock.getRootPos(getBlockPos(), state);
+        BlockPos adjacentRootPos = adjacentTableBlock.getRootPos(adjacentPos, adjacentState);
+        return rootPos.equals(adjacentRootPos);
+    }
+
+    private IManagedGridNode getEffectiveMainNode() {
+        AEGunSmithTableBlockEntity rootTable = getRootTable();
+        return rootTable != null ? rootTable.mainNode : mainNode;
+    }
+
+    private @Nullable AEGunSmithTableBlockEntity getRootTable() {
+        if (isRootPart()) {
+            return this;
+        }
+
+        Level level = getLevel();
+        BlockState state = getBlockState();
+        if (level == null || !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock)) {
+            return null;
+        }
+
+        BlockPos rootPos = tableBlock.getRootPos(getBlockPos(), state);
+        BlockEntity blockEntity = level.getBlockEntity(rootPos);
+        return blockEntity instanceof AEGunSmithTableBlockEntity table ? table : null;
     }
 }

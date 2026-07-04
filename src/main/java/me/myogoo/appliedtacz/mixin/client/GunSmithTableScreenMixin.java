@@ -13,6 +13,7 @@ import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientAutocraftPacket;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientCountsPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -42,7 +43,7 @@ import java.util.Map;
 public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<com.tacz.guns.inventory.GunSmithTableMenu>
         implements IngredientCountSyncTarget {
 
-    private static final int AE2_ICON_BLUE = 0x44B2EB;
+    private static final int CRAFTABLE_MARKER_WHITE = 0xFFFFFF;
 
     @Unique
     private static final String[] APPLIED_TACZ_AMOUNT_SUFFIXES = new String[] { "", "k", "m", "g", "t", "p", "e" };
@@ -97,7 +98,42 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<c
         }
 
         MousePositionRestorer.restoreReturnToMainMenuIfPending();
+        appliedTacz$renderNetworkStatus(graphics, mouseX, mouseY, (AEGunSmithTableMenu) menu);
         appliedTacz$renderCraftableMarkers(graphics);
+    }
+
+    @Unique
+    private void appliedTacz$renderNetworkStatus(GuiGraphics graphics, int mouseX, int mouseY,
+            AEGunSmithTableMenu aeMenu) {
+        Component status;
+        int color;
+        if (!aeMenu.isNetworkPowered()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.offline");
+            color = 0xC05050;
+        } else if (!aeMenu.isNetworkOnline()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.no_channel");
+            color = 0xD4A13A;
+        } else if (!aeMenu.hasBootedGrid()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.booting");
+            color = 0xD4A13A;
+        } else {
+            status = Component.translatable("gui.appliedtacz.ae_network.connected");
+            color = 0x55AA55;
+        }
+
+        Component line = Component.translatable("gui.appliedtacz.ae_network",
+                status.copy().withStyle(ChatFormatting.WHITE));
+        int x = leftPos + 6;
+        int y = topPos + imageHeight - font.lineHeight - 4;
+        graphics.drawString(font, line, x, y, color, false);
+
+        int width = font.width(line);
+        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + font.lineHeight) {
+            graphics.renderTooltip(font,
+                    Component.translatable("gui.appliedtacz.ae_network.tooltip"),
+                    mouseX,
+                    mouseY);
+        }
     }
 
     @Inject(method = "init", at = @At("TAIL"))
@@ -337,7 +373,7 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<c
             int row = index / 2;
             int x = leftPos + 254 + 45 * column + 10;
             int y = topPos + 62 + 17 * row + 8;
-            graphics.drawString(font, "+", x, y, AE2_ICON_BLUE, true);
+            graphics.drawString(font, "+", x, y, CRAFTABLE_MARKER_WHITE, true);
         }
         graphics.pose().popPose();
     }
