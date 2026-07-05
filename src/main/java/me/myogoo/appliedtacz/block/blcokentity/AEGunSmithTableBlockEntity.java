@@ -2,7 +2,6 @@ package me.myogoo.appliedtacz.block.blcokentity;
 
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
-import appeng.api.networking.IGridMultiblock;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.orientation.BlockOrientation;
@@ -14,7 +13,6 @@ import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import appeng.menu.ISubMenu;
 import com.tacz.guns.block.AbstractGunSmithTableBlock;
-import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.init.AETaCZBlockEntity;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
@@ -31,6 +29,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
@@ -39,9 +39,8 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
@@ -53,8 +52,7 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
             .setExposedOnSides(EnumSet.complementOf(EnumSet.of(Direction.UP)))
             .setInWorldNode(true)
             .setTagName("main")
-            .setFlags(GridFlags.REQUIRE_CHANNEL, GridFlags.MULTIBLOCK)
-            .addService(IGridMultiblock.class, this::getMultiblockNodes);
+            .setFlags(GridFlags.REQUIRE_CHANNEL);
 
     private @Nullable ResourceLocation id;
     private boolean clientNetworkPowered;
@@ -63,7 +61,6 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
 
     public AEGunSmithTableBlockEntity(BlockPos pos, BlockState blockState) {
         super(AETaCZBlockEntity.AE_GUN_SMITH_TABLE.get(), pos, blockState);
-        updateGridConnectableSides();
     }
 
     protected IManagedGridNode createMainNode() {
@@ -78,72 +75,34 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
         }
     }
 
-    private void updateGridConnectableSides() {
-        this.mainNode.setExposedOnSides(getGridConnectableSides(BlockOrientation.get(getBlockState())));
-    }
-
-    private Iterator<IGridNode> getMultiblockNodes() {
-        if (this.level == null) {
-            ArrayList<IGridNode> self = new ArrayList<>();
-            IGridNode node = this.getGridNode();
-            if (node != null) {
-                self.add(node);
-            }
-            return self.iterator();
-        }
-
-        ArrayList<IGridNode> nodes = new ArrayList<>();
-        for (BlockPos pos : getMultiblockPositions()) {
-            if (this.level.getBlockEntity(pos) instanceof AEGunSmithTableBlockEntity table) {
-                IGridNode node = table.getGridNode();
-                if (node != null) {
-                    nodes.add(node);
-                }
-            }
-        }
-        return nodes.iterator();
-    }
-
-    private Set<BlockPos> getMultiblockPositions() {
-        BlockState state = getBlockState();
-        if (!(state.getBlock() instanceof AbstractGunSmithTableBlock block)) {
-            return Set.of(this.worldPosition);
-        }
-
-        BlockPos rootPos = block.getRootPos(this.worldPosition, state);
-        if (state.getBlock() instanceof GunSmithTableBlockC) {
-            return Set.of(rootPos, rootPos.above());
-        }
-        if (rootPos.equals(this.worldPosition)) {
-            Direction facing = state.getValue(AbstractGunSmithTableBlock.FACING);
-            BlockPos otherPos = rootPos.relative(facing);
-            if (this.level != null && this.level.getBlockEntity(otherPos) instanceof AEGunSmithTableBlockEntity) {
-                return Set.of(rootPos, otherPos);
-            }
-        } else {
-            return Set.of(rootPos, this.worldPosition);
-        }
-        return Set.of(this.worldPosition);
-    }
-
     public @Nullable ResourceLocation getId() {
         return this.id;
     }
 
     @Override
     public IManagedGridNode getMainNode() {
-        return this.mainNode;
+        return getEffectiveMainNode();
+    }
+
+    @Override
+    public @Nullable IGridNode getGridNode() {
+        return getEffectiveMainNode().getNode();
+    }
+
+    @Override
+    public @Nullable IGridNode getGridNode(@Nullable Direction dir) {
+        return canExposeNodeOnSide(dir) ? getEffectiveMainNode().getNode() : null;
+    }
+
+    @Override
+    public @Nullable IGridNode getActionableNode() {
+        return getEffectiveMainNode().getNode();
     }
 
     @Override
     public Set<Direction> getGridConnectableSides(BlockOrientation orientation) {
-        Set<Direction> sides = EnumSet.complementOf(EnumSet.of(orientation.getSide(RelativeSide.TOP)));
-        BlockState state = getBlockState();
-        if (state.getBlock() instanceof GunSmithTableBlockC
-                && state.getBlock() instanceof AbstractGunSmithTableBlock block
-                && block.getRootPos(this.worldPosition, state).equals(this.worldPosition)) {
-            sides.add(Direction.UP);
-        }
+        Set<Direction> sides = EnumSet.allOf(Direction.class);
+        sides.remove(orientation.getSide(RelativeSide.TOP));
         return sides;
     }
 
@@ -170,23 +129,26 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
 
     @Override
     protected void writeToStream(FriendlyByteBuf data) {
+        IManagedGridNode effectiveNode = getEffectiveMainNode();
         data.writeBoolean(this.id != null);
         if (this.id != null) {
             data.writeResourceLocation(this.id);
         }
-        data.writeBoolean(this.getMainNode().isPowered());
-        data.writeBoolean(this.getMainNode().isOnline());
-        data.writeBoolean(this.getMainNode().hasGridBooted());
+        data.writeBoolean(effectiveNode.isPowered());
+        data.writeBoolean(effectiveNode.isOnline());
+        data.writeBoolean(effectiveNode.hasGridBooted());
     }
 
     @Override
     protected boolean readFromStream(FriendlyByteBuf data) {
+        ResourceLocation oldId = this.id;
         this.id = data.readBoolean() ? data.readResourceLocation() : null;
         boolean networkPowered = data.readBoolean();
         boolean networkOnline = data.readBoolean();
         boolean gridBooted = data.readBoolean();
 
-        boolean changed = networkPowered != this.clientNetworkPowered
+        boolean changed = !Objects.equals(oldId, this.id)
+                || networkPowered != this.clientNetworkPowered
                 || networkOnline != this.clientNetworkOnline
                 || gridBooted != this.clientGridBooted;
         this.clientNetworkPowered = networkPowered;
@@ -198,31 +160,38 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
-        this.mainNode.destroy();
+        if (isRootPart()) {
+            this.mainNode.destroy();
+        }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        this.mainNode.destroy();
+        if (isRootPart()) {
+            this.mainNode.destroy();
+        }
     }
 
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        scheduleInit();
+        if (isRootPart()) {
+            scheduleInit();
+        }
     }
 
     @Override
     public void onReady() {
         super.onReady();
-        updateGridConnectableSides();
-        this.mainNode.create(this.level, this.worldPosition);
+        if (isRootPart()) {
+            this.mainNode.create(this.level, this.worldPosition);
+        }
     }
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST && !Direction.UP.equals(side)) {
+        if (cap == Capabilities.IN_WORLD_GRID_NODE_HOST && canExposeNodeOnSide(side)) {
             return LazyOptional.of(() -> this).cast();
         }
         return super.getCapability(cap, side);
@@ -235,9 +204,14 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
 
     @Override
     public void onMainNodeStateChanged(appeng.api.networking.IGridNodeListener.State reason) {
-        boolean networkPowered = this.getMainNode().isPowered();
-        boolean networkOnline = this.getMainNode().isOnline();
-        boolean gridBooted = this.getMainNode().hasGridBooted();
+        syncNetworkState();
+    }
+
+    private void syncNetworkState() {
+        IManagedGridNode effectiveNode = getEffectiveMainNode();
+        boolean networkPowered = effectiveNode.isPowered();
+        boolean networkOnline = effectiveNode.isOnline();
+        boolean gridBooted = effectiveNode.hasGridBooted();
         if (networkPowered == this.clientNetworkPowered
                 && networkOnline == this.clientNetworkOnline
                 && gridBooted == this.clientGridBooted) {
@@ -273,23 +247,72 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity
     public boolean isNetworkPowered() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientNetworkPowered
-                : this.getMainNode().isPowered();
+                : getEffectiveMainNode().isPowered();
     }
 
     public boolean isNetworkOnline() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientNetworkOnline
-                : this.getMainNode().isOnline();
+                : getEffectiveMainNode().isOnline();
     }
 
     public boolean hasBootedGrid() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientGridBooted
-                : this.getMainNode().hasGridBooted();
+                : getEffectiveMainNode().hasGridBooted();
     }
 
     @Override
     public AABB getRenderBoundingBox() {
         return new AABB(this.worldPosition.offset(-2, 0, -2), this.worldPosition.offset(2, 1, 2));
+    }
+
+    private boolean isRootPart() {
+        BlockState state = getBlockState();
+        return !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock)
+                || tableBlock.isRoot(state);
+    }
+
+    private boolean canExposeNodeOnSide(@Nullable Direction dir) {
+        return dir != null && dir != Direction.UP && !isInternalMultiblockFace(dir);
+    }
+
+    private boolean isInternalMultiblockFace(Direction dir) {
+        Level level = getLevel();
+        BlockState state = getBlockState();
+        if (level == null || !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock)) {
+            return false;
+        }
+
+        BlockPos adjacentPos = getBlockPos().relative(dir);
+        BlockState adjacentState = level.getBlockState(adjacentPos);
+        if (!(adjacentState.getBlock() instanceof AbstractGunSmithTableBlock adjacentTableBlock)) {
+            return false;
+        }
+
+        BlockPos rootPos = tableBlock.getRootPos(getBlockPos(), state);
+        BlockPos adjacentRootPos = adjacentTableBlock.getRootPos(adjacentPos, adjacentState);
+        return rootPos.equals(adjacentRootPos);
+    }
+
+    private IManagedGridNode getEffectiveMainNode() {
+        AEGunSmithTableBlockEntity rootTable = getRootTable();
+        return rootTable != null ? rootTable.mainNode : mainNode;
+    }
+
+    private @Nullable AEGunSmithTableBlockEntity getRootTable() {
+        if (isRootPart()) {
+            return this;
+        }
+
+        Level level = getLevel();
+        BlockState state = getBlockState();
+        if (level == null || !(state.getBlock() instanceof AbstractGunSmithTableBlock tableBlock)) {
+            return null;
+        }
+
+        BlockPos rootPos = tableBlock.getRootPos(getBlockPos(), state);
+        BlockEntity blockEntity = level.getBlockEntity(rootPos);
+        return blockEntity instanceof AEGunSmithTableBlockEntity table ? table : null;
     }
 }

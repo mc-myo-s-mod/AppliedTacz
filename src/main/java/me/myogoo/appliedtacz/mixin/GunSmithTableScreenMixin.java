@@ -14,6 +14,7 @@ import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientAutocraftPacket;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientCountsPacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.GuiGraphics;
@@ -43,7 +44,7 @@ import java.util.Map;
 public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<GunSmithTableMenu>
         implements IngredientCountSyncTarget {
 
-    private static final int AE2_ICON_BLUE = 0x44B2EB;
+    private static final int CRAFTABLE_MARKER_WHITE = 0xFFFFFF;
 
     @Unique
     private static final String[] APPLIED_TACZ_AMOUNT_SUFFIXES = new String[] { "", "k", "m", "g", "t", "p", "e" };
@@ -108,7 +109,41 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
         }
 
         MousePositionRestorer.restoreReturnToMainMenuIfPending();
+        appliedTacz$renderNetworkStatus(graphics, mouseX, mouseY, (AEGunSmithTableMenu) this.menu);
         appliedTacz$renderCraftableMarkers(graphics);
+    }
+
+    private void appliedTacz$renderNetworkStatus(GuiGraphics graphics, int mouseX, int mouseY,
+            AEGunSmithTableMenu aeMenu) {
+        Component status;
+        int color;
+        if (!aeMenu.isNetworkPowered()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.offline");
+            color = 0xC05050;
+        } else if (!aeMenu.isNetworkOnline()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.no_channel");
+            color = 0xD4A13A;
+        } else if (!aeMenu.hasBootedGrid()) {
+            status = Component.translatable("gui.appliedtacz.ae_network.booting");
+            color = 0xD4A13A;
+        } else {
+            status = Component.translatable("gui.appliedtacz.ae_network.connected");
+            color = 0x55AA55;
+        }
+
+        Component line = Component.translatable("gui.appliedtacz.ae_network",
+                status.copy().withStyle(ChatFormatting.WHITE));
+        int x = this.leftPos + 6;
+        int y = this.topPos + this.imageHeight - this.font.lineHeight - 4;
+        graphics.drawString(this.font, line, x, y, color, false);
+
+        int width = this.font.width(line);
+        if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + this.font.lineHeight) {
+            graphics.renderTooltip(this.font,
+                    Component.translatable("gui.appliedtacz.ae_network.tooltip"),
+                    mouseX,
+                    mouseY);
+        }
     }
 
     @Inject(method = "init", at = @At("TAIL"), remap = true)
@@ -300,6 +335,8 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
                         return;
                     }
                 }
+            } else if (!isCreative) {
+                AppliedTaczNetwork.sendToServer(new RequestIngredientCountsPacket(aeMenu.containerId, this.selectedRecipe.getId()));
             }
 
             NetworkHandler.CHANNEL.sendToServer(new ClientMessageCraft(this.selectedRecipe.getId(), this.menu.containerId));
@@ -366,7 +403,7 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
             int row = index / 2;
             int x = this.leftPos + 254 + 45 * column + 10;
             int y = this.topPos + 62 + 17 * row + 8;
-            graphics.drawString(this.font, "+", x, y, AE2_ICON_BLUE, true);
+            graphics.drawString(this.font, "+", x, y, CRAFTABLE_MARKER_WHITE, true);
         }
         graphics.pose().popPose();
     }

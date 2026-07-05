@@ -12,6 +12,7 @@ public abstract class CraftAmountScreenMixin {
     @Inject(method = "updateBeforeRender", at = @At("HEAD"))
     private void appliedTacz$restoreMousePosition(CallbackInfo ci) {
         MousePositionRestorer.restoreIfPending();
+        MousePositionRestorer.rememberCurrentPositionForReturnToMainMenu();
     }
 
     @Inject(method = "confirm", at = @At("HEAD"))
