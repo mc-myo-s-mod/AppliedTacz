@@ -1,7 +1,6 @@
 # Changelog
 
 ## Features
-- Added dynamic recipes for TaCZ gun pack workbenches.
-  - `/tacz reload` now find  workbenches and generates recipes for them on data reload.
-- Added JEI catalysts for AppliedTaCZ workbenches.
-- The Workbench upgrade recipe has changed from `ME Storage Bus` to `ME Interface`.
+- port 1.21.1 with [\[UNOFFICIAL\] TaCZ NeoForge Port](https://www.curseforge.com/minecraft/mc-mods/tacz-1-21-1)
+- Jade indicate AE network status for AppliedTacz Workbench
+- Request AutoCrafting in AppliedTacz Screen

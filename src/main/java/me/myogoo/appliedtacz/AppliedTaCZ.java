@@ -25,6 +25,7 @@ public class AppliedTaCZ {
         AETaczMenu.REGISTER.register(modEventBus);
         AETaCZBlockEntity.REGISTER.register(modEventBus);
         AETaCZCreativeTab.REGISTER.register(modEventBus);
+        modEventBus.addListener(AETaCZCreativeTab::addToTaczTab);
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
             modEventBus.addListener(AppliedTaczClient::init);
             modEventBus.addListener(AppliedTaczClient::registerRenderers);

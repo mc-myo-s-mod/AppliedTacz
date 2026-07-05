@@ -12,8 +12,8 @@ import me.myogoo.appliedtacz.init.AETaCZBlock;
 
 public final class AETaCZItemDecorators {
     private static final ResourceLocation INTERFACE_BADGE = ResourceLocation.fromNamespaceAndPath("ae2",
-            "textures/block/interface.png");
-    private static final int BADGE_SIZE = 7;
+            "textures/part/interface.png");
+    private static final int BADGE_SIZE = 8;
     private static final IItemDecorator WORKBENCH_BADGE = new InterfaceBadgeDecorator();
 
     private AETaCZItemDecorators() {
@@ -28,8 +28,8 @@ public final class AETaCZItemDecorators {
     private static final class InterfaceBadgeDecorator implements IItemDecorator {
         @Override
         public boolean render(GuiGraphics graphics, Font font, ItemStack stack, int xOffset, int yOffset) {
-            int badgeX = xOffset + 9;
-            int badgeY = yOffset + 9;
+            int badgeX = xOffset + 8;
+            int badgeY = yOffset + 8;
 
             graphics.pose().pushPose();
             graphics.pose().translate(0.0F, 0.0F, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10.0F);

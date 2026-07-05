@@ -20,7 +20,7 @@ public final class AppliedTaczClientHooks {
             return;
         }
 
-        menu.setSyncedIngredientCounts(packet.recipeId(), packet.counts());
+        menu.setSyncedIngredientCounts(packet.recipeId(), packet.counts(), packet.craftableIngredients());
         if (minecraft.screen instanceof IngredientCountSyncTarget target) {
             target.appliedTacz$applyIngredientCounts();
         }

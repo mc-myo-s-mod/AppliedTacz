@@ -8,27 +8,33 @@ import com.tacz.guns.network.NetworkHandler;
 import com.tacz.guns.network.message.ClientMessageCraft;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import me.myogoo.appliedtacz.client.IngredientCountSyncTarget;
+import me.myogoo.appliedtacz.client.MousePositionRestorer;
+import me.myogoo.appliedtacz.client.RecipeSelectionRestorer;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
+import me.myogoo.appliedtacz.network.packet.RequestIngredientAutocraftPacket;
 import me.myogoo.appliedtacz.network.packet.RequestIngredientCountsPacket;
-import me.myogoo.appliedtacz.util.AEUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +44,23 @@ import java.util.Map;
 public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<GunSmithTableMenu>
         implements IngredientCountSyncTarget {
 
+    private static final int CRAFTABLE_MARKER_WHITE = 0xFFFFFF;
+
+    @Unique
+    private static final String[] APPLIED_TACZ_AMOUNT_SUFFIXES = new String[] { "", "k", "m", "g", "t", "p", "e" };
+
+    @Unique
+    private static final DecimalFormat APPLIED_TACZ_WHOLE_FORMAT = new DecimalFormat("0",
+            DecimalFormatSymbols.getInstance(Locale.ROOT));
+
+    @Unique
+    private static final DecimalFormat APPLIED_TACZ_SINGLE_DECIMAL_FORMAT = new DecimalFormat("0.#",
+            DecimalFormatSymbols.getInstance(Locale.ROOT));
+
+    @Unique
+    private static final DecimalFormat APPLIED_TACZ_DOUBLE_DECIMAL_FORMAT = new DecimalFormat("0.##",
+            DecimalFormatSymbols.getInstance(Locale.ROOT));
+
     @Shadow(remap = false)
     private static ResourceLocation TEXTURE;
 
@@ -46,6 +69,18 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
 
     @Shadow(remap = false)
     private GunSmithTableRecipe selectedRecipe;
+
+    @Shadow(remap = false)
+    private Map<ResourceLocation, List<ResourceLocation>> recipes;
+
+    @Shadow(remap = false)
+    private ResourceLocation selectedType;
+
+    @Shadow(remap = false)
+    private List<ResourceLocation> selectedRecipeList;
+
+    @Shadow(remap = false)
+    private int indexPage;
 
     /**
      * Which recipe we have registered with the server as "currently watching".
@@ -67,12 +102,19 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
     }
 
     @Inject(method = "render", at = @At("TAIL"), remap = true)
-    void appliedTacz$renderNetworkStatus(GuiGraphics graphics, int mouseX, int mouseY, float partialTick,
+    void appliedTacz$renderCraftableMarkersOnly(GuiGraphics graphics, int mouseX, int mouseY, float partialTick,
             CallbackInfo ci) {
-        if (!(this.menu instanceof AEGunSmithTableMenu aeMenu)) {
+        if (!(this.menu instanceof AEGunSmithTableMenu)) {
             return;
         }
 
+        MousePositionRestorer.restoreReturnToMainMenuIfPending();
+        appliedTacz$renderNetworkStatus(graphics, mouseX, mouseY, (AEGunSmithTableMenu) this.menu);
+        appliedTacz$renderCraftableMarkers(graphics);
+    }
+
+    private void appliedTacz$renderNetworkStatus(GuiGraphics graphics, int mouseX, int mouseY,
+            AEGunSmithTableMenu aeMenu) {
         Component status;
         int color;
         if (!aeMenu.isNetworkPowered()) {
@@ -89,7 +131,8 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
             color = 0x55AA55;
         }
 
-        Component line = Component.translatable("gui.appliedtacz.ae_network", status.copy().withStyle(ChatFormatting.WHITE));
+        Component line = Component.translatable("gui.appliedtacz.ae_network",
+                status.copy().withStyle(ChatFormatting.WHITE));
         int x = this.leftPos + 6;
         int y = this.topPos + this.imageHeight - this.font.lineHeight - 4;
         graphics.drawString(this.font, line, x, y, color, false);
@@ -100,6 +143,108 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
                     Component.translatable("gui.appliedtacz.ae_network.tooltip"),
                     mouseX,
                     mouseY);
+        }
+    }
+
+    @Inject(method = "init", at = @At("TAIL"), remap = true)
+    private void appliedTacz$restoreMouseAfterReturningToTable(CallbackInfo ci) {
+        if (this.menu instanceof AEGunSmithTableMenu) {
+            MousePositionRestorer.restoreReturnToMainMenuIfPending();
+        }
+    }
+
+    @Inject(
+            method = "init",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lcom/tacz/guns/client/gui/GunSmithTableScreen;classifyRecipes()V",
+                    shift = At.Shift.AFTER,
+                    remap = false),
+            remap = true)
+    private void appliedTacz$restorePendingRecipeSelection(CallbackInfo ci) {
+        ResourceLocation recipeId = RecipeSelectionRestorer.getPendingRecipeId();
+        if (recipeId == null || Minecraft.getInstance().level == null) {
+            return;
+        }
+
+        Recipe<?> foundRecipe = Minecraft.getInstance().level.getRecipeManager().byKey(recipeId).orElse(null);
+        if (!(foundRecipe instanceof GunSmithTableRecipe recipe)) {
+            RecipeSelectionRestorer.forget(recipeId);
+            return;
+        }
+
+        ResourceLocation group = appliedTacz$findRecipeGroup(recipeId, recipe);
+        List<ResourceLocation> recipeList = this.recipes.get(group);
+        if (group == null || recipeList == null) {
+            RecipeSelectionRestorer.forget(recipeId);
+            return;
+        }
+
+        int recipeIndex = recipeList.indexOf(recipeId);
+        if (recipeIndex < 0) {
+            RecipeSelectionRestorer.forget(recipeId);
+            return;
+        }
+
+        this.selectedType = group;
+        this.selectedRecipeList = recipeList;
+        this.indexPage = recipeIndex / 6;
+        this.selectedRecipe = recipe;
+        RecipeSelectionRestorer.forget(recipeId);
+        appliedTacz$refreshSelectedRecipeCounts(recipeId, recipe);
+    }
+
+    private @Nullable ResourceLocation appliedTacz$findRecipeGroup(ResourceLocation recipeId, GunSmithTableRecipe recipe) {
+        ResourceLocation recipeGroup = recipe.getResult().getGroup();
+        if (this.recipes.containsKey(recipeGroup)) {
+            return recipeGroup;
+        }
+
+        for (Map.Entry<ResourceLocation, List<ResourceLocation>> entry : this.recipes.entrySet()) {
+            if (entry.getValue().contains(recipeId)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    private void appliedTacz$refreshSelectedRecipeCounts(ResourceLocation recipeId, GunSmithTableRecipe recipe) {
+        if (this.menu instanceof AEGunSmithTableMenu aeMenu) {
+            this.appliedTacz$watchedRecipeId = recipeId;
+            AppliedTaczNetwork.sendToServer(new RequestIngredientCountsPacket(aeMenu.containerId, recipeId));
+            if (aeMenu.hasSyncedIngredientCounts(recipeId)) {
+                appliedTacz$applySyncedIngredientCounts(aeMenu, recipe);
+                return;
+            }
+        }
+
+        Int2IntArrayMap cached = this.appliedTacz$countsCache.get(recipeId);
+        if (cached != null) {
+            this.playerIngredientCount = new Int2IntArrayMap(cached);
+            return;
+        }
+
+        appliedTacz$applyPlayerInventoryIngredientCounts(recipe);
+    }
+
+    private void appliedTacz$applyPlayerInventoryIngredientCounts(GunSmithTableRecipe recipe) {
+        if (Minecraft.getInstance().player == null) {
+            this.playerIngredientCount = new Int2IntArrayMap();
+            return;
+        }
+
+        List<GunSmithTableIngredient> ingredients = recipe.getInputs();
+        Inventory inventory = Minecraft.getInstance().player.getInventory();
+        this.playerIngredientCount = new Int2IntArrayMap(ingredients.size());
+        for (int i = 0; i < ingredients.size(); i++) {
+            GunSmithTableIngredient ingredient = ingredients.get(i);
+            int count = 0;
+            for (ItemStack stack : inventory.items) {
+                if (!stack.isEmpty() && ingredient.getIngredient().test(stack)) {
+                    count += stack.getCount();
+                }
+            }
+            this.playerIngredientCount.put(i, count);
         }
     }
 
@@ -190,10 +335,77 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
                         return;
                     }
                 }
+            } else if (!isCreative) {
+                AppliedTaczNetwork.sendToServer(new RequestIngredientCountsPacket(aeMenu.containerId, this.selectedRecipe.getId()));
             }
 
             NetworkHandler.CHANNEL.sendToServer(new ClientMessageCraft(this.selectedRecipe.getId(), this.menu.containerId));
         }));
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0 && this.menu instanceof AEGunSmithTableMenu aeMenu && this.selectedRecipe != null) {
+            int ingredientIndex = appliedTacz$getIngredientIndexAt(mouseX, mouseY);
+            if (ingredientIndex >= 0) {
+                MousePositionRestorer.rememberCurrentPosition();
+                RecipeSelectionRestorer.remember(this.selectedRecipe.getId());
+                AppliedTaczNetwork.sendToServer(new RequestIngredientAutocraftPacket(
+                        aeMenu.containerId,
+                        this.selectedRecipe.getId(),
+                        ingredientIndex));
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private int appliedTacz$getIngredientIndexAt(double mouseX, double mouseY) {
+        if (this.selectedRecipe == null) {
+            return -1;
+        }
+
+        int localX = (int) mouseX - this.leftPos - 254;
+        int localY = (int) mouseY - this.topPos - 62;
+        if (localX < 0 || localY < 0) {
+            return -1;
+        }
+
+        int column = localX / 45;
+        int row = localY / 17;
+        if (column < 0 || column >= 2 || row < 0 || row >= 6) {
+            return -1;
+        }
+        if (localX % 45 >= 45 || localY % 17 >= 17) {
+            return -1;
+        }
+
+        int index = row * 2 + column;
+        return index < this.selectedRecipe.getInputs().size() ? index : -1;
+    }
+
+    private void appliedTacz$renderCraftableMarkers(GuiGraphics graphics) {
+        if (!(this.menu instanceof AEGunSmithTableMenu aeMenu) || this.selectedRecipe == null) {
+            return;
+        }
+        if (!aeMenu.hasSyncedIngredientCounts(this.selectedRecipe.getId())) {
+            return;
+        }
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(0.0F, 0.0F, 400.0F);
+        int size = this.selectedRecipe.getInputs().size();
+        for (int index = 0; index < size; index++) {
+            if (!aeMenu.isSyncedIngredientCraftable(index)) {
+                continue;
+            }
+            int column = index % 2;
+            int row = index / 2;
+            int x = this.leftPos + 254 + 45 * column + 10;
+            int y = this.topPos + 62 + 17 * row + 8;
+            graphics.drawString(this.font, "+", x, y, CRAFTABLE_MARKER_WHITE, true);
+        }
+        graphics.pose().popPose();
     }
 
     @Redirect(
@@ -206,14 +418,33 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
         }
 
         if (args.length == 1 && args[0] instanceof Number needed) {
-            return AEUtils.formatAmount(needed.longValue()) + "/∞";
+            return appliedTacz$formatAmount(needed.longValue()) + "/∞";
         }
 
         if (args.length == 2 && args[0] instanceof Number needed && args[1] instanceof Number available) {
-            return AEUtils.formatAmount(needed.longValue()) + "/" + AEUtils.formatAmount(available.longValue());
+            return appliedTacz$formatAmount(needed.longValue()) + "/" + appliedTacz$formatAmount(available.longValue());
         }
 
         return String.format(Locale.ROOT, format, args);
+    }
+
+    @Unique
+    private static String appliedTacz$formatAmount(long amount) {
+        if (amount < 1000) {
+            return Long.toString(amount);
+        }
+
+        int index = 0;
+        double value = amount;
+        while (value >= 999.95 && index < APPLIED_TACZ_AMOUNT_SUFFIXES.length - 1) {
+            value /= 1000.0;
+            index++;
+        }
+
+        DecimalFormat format = value >= 100
+                ? APPLIED_TACZ_WHOLE_FORMAT
+                : value >= 10 ? APPLIED_TACZ_SINGLE_DECIMAL_FORMAT : APPLIED_TACZ_DOUBLE_DECIMAL_FORMAT;
+        return format.format(value) + APPLIED_TACZ_AMOUNT_SUFFIXES[index];
     }
 
     /**

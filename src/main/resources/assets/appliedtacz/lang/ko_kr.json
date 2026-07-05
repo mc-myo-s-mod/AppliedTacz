@@ -8,6 +8,5 @@
   "gui.appliedtacz.ae_network.booting": "부팅 중",
   "gui.appliedtacz.ae_network.no_channel": "채널 없음",
   "gui.appliedtacz.ae_network.offline": "오프라인",
-  "gui.appliedtacz.ae_network.tooltip": "작업대가 현재 AE2 네트워크에 연결되어 있는 상태입니다.",
-  "tooltip.appliedtacz.ae_support": "AE Support"
+  "gui.appliedtacz.ae_network.tooltip": "이 작업대가 ME 네트워크에 연결되어 있는지 표시합니다."
 }

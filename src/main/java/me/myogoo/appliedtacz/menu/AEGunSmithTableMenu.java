@@ -2,6 +2,7 @@ package me.myogoo.appliedtacz.menu;
 
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
+import appeng.api.networking.crafting.ICraftingService;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.networking.storage.IStorageService;
@@ -14,12 +15,16 @@ import com.tacz.guns.inventory.GunSmithTableMenu;
 import com.tacz.guns.network.NetworkHandler;
 import com.tacz.guns.network.message.ServerMessageCraft;
 import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.IntArraySet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
 import me.myogoo.appliedtacz.init.AETaczMenu;
 import me.myogoo.appliedtacz.mixin.GunSmithTableMenuAccessor;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
 import me.myogoo.appliedtacz.network.packet.SyncIngredientCountsPacket;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
+import appeng.menu.locator.MenuLocators;
+import appeng.menu.me.crafting.CraftAmountMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -37,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class AEGunSmithTableMenu extends GunSmithTableMenu {
     public static final MenuType<AEGunSmithTableMenu> TYPE = IForgeMenuType.create((windowId, inv, data) -> {
@@ -52,6 +58,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
     private final @Nullable AEGunSmithTableBlockEntity blockEntity;
     private final IActionSource mySrc;
     private final Int2IntArrayMap syncedIngredientCounts = new Int2IntArrayMap();
+    private final IntArraySet syncedCraftableIngredients = new IntArraySet();
     private @Nullable IStorageService storageService;
     private @Nullable ResourceLocation syncedRecipeId;
 
@@ -59,6 +66,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
     private @Nullable ResourceLocation watchedRecipeId = null;
     // Server-side: last counts sent to client, used to detect changes
     private Int2IntArrayMap lastSentCounts = new Int2IntArrayMap();
+    private IntArraySet lastSentCraftableIngredients = new IntArraySet();
 
     public AEGunSmithTableMenu(int id, Inventory inventory, @Nullable AEGunSmithTableBlockEntity blockEntity) {
         this(id, inventory, blockEntity, AETaCZWorkbenchIndex.getMenuBlockId(blockEntity));
@@ -94,6 +102,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
         if (!Objects.equals(recipeId, this.watchedRecipeId)) {
             this.watchedRecipeId = recipeId;
             this.lastSentCounts.clear();
+            this.lastSentCraftableIngredients.clear();
         }
     }
 
@@ -104,7 +113,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
     @Override
     public void broadcastChanges() {
         super.broadcastChanges();
-        if (isClientSide() || this.watchedRecipeId == null) {
+        if (isClientSide()) {
             return;
         }
 
@@ -113,11 +122,18 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
             return;
         }
 
+        if (this.watchedRecipeId == null) {
+            return;
+        }
+
         Int2IntArrayMap currentCounts = getAvailableIngredientCounts(this.watchedRecipeId, player);
-        if (!currentCounts.equals(this.lastSentCounts)) {
-            this.lastSentCounts = currentCounts;
+        IntArraySet currentCraftableIngredients = getCraftableIngredientIndices(this.watchedRecipeId, player);
+        if (!currentCounts.equals(this.lastSentCounts) || !currentCraftableIngredients.equals(this.lastSentCraftableIngredients)) {
+            this.lastSentCounts = new Int2IntArrayMap(currentCounts);
+            this.lastSentCraftableIngredients = new IntArraySet(currentCraftableIngredients);
             AppliedTaczNetwork.sendToPlayer(
-                    new SyncIngredientCountsPacket(this.containerId, this.watchedRecipeId, currentCounts),
+                    new SyncIngredientCountsPacket(this.containerId, this.watchedRecipeId, currentCounts,
+                            currentCraftableIngredients),
                     serverPlayer);
         }
     }
@@ -208,9 +224,57 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
             return;
         }
 
+        IntArraySet craftableIngredients = getCraftableIngredientIndices(recipeId, player);
+        this.lastSentCounts = new Int2IntArrayMap(getAvailableIngredientCounts(recipeId, player));
+        this.lastSentCraftableIngredients = new IntArraySet(craftableIngredients);
         AppliedTaczNetwork.sendToPlayer(
-                new SyncIngredientCountsPacket(this.containerId, recipeId, getAvailableIngredientCounts(recipeId, player)),
+                new SyncIngredientCountsPacket(this.containerId, recipeId, this.lastSentCounts, craftableIngredients),
                 serverPlayer);
+    }
+
+    public void requestIngredientAutocraft(ResourceLocation recipeId, int ingredientIndex, ServerPlayer player) {
+        if (this.blockEntity == null) {
+            return;
+        }
+        var node = this.blockEntity.getActionableNode();
+        if (node == null || !node.isActive()) {
+            return;
+        }
+
+        GunSmithTableRecipe recipe = ((GunSmithTableMenuAccessor) this).callGetRecipe(recipeId,
+                player.level().getRecipeManager());
+        if (recipe == null || ingredientIndex < 0 || ingredientIndex >= recipe.getInputs().size()) {
+            return;
+        }
+
+        GunSmithTableIngredient ingredient = recipe.getInputs().get(ingredientIndex);
+        long missing = ingredient.getCount() - getAvailableIngredientCount(ingredient);
+        long craftAmount = missing > 0 ? missing : ingredient.getCount();
+
+        ICraftingService craftingService = node.getGrid().getCraftingService();
+        Optional<AEItemKey> craftableKey = findCraftableIngredientKey(ingredient, craftingService);
+        if (craftableKey.isEmpty()) {
+            return;
+        }
+
+        CraftAmountMenu.open(player,
+                MenuLocators.forBlockEntity(this.blockEntity),
+                craftableKey.get(),
+                (int) Math.min(Integer.MAX_VALUE, craftAmount));
+    }
+
+    private Optional<AEItemKey> findCraftableIngredientKey(GunSmithTableIngredient ingredient,
+            ICraftingService craftingService) {
+        return Arrays.stream(ingredient.getIngredient().getItems())
+                .map(AEItemKey::of)
+                .filter(Objects::nonNull)
+                .map(key -> craftingService.getFuzzyCraftable(
+                        key,
+                        candidate -> candidate instanceof AEItemKey itemKey
+                                && itemKey.matches(ingredient.getIngredient())))
+                .filter(AEItemKey.class::isInstance)
+                .map(AEItemKey.class::cast)
+                .findFirst();
     }
 
     private boolean isClientSide() {
@@ -359,15 +423,39 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
         return counts;
     }
 
-    public void setSyncedIngredientCounts(ResourceLocation recipeId, Int2IntArrayMap counts) {
+    public IntArraySet getCraftableIngredientIndices(ResourceLocation recipeId, Player player) {
+        IntArraySet craftableIngredients = new IntArraySet();
+        if (this.blockEntity == null || this.blockEntity.getActionableNode() == null) {
+            return craftableIngredients;
+        }
+        GunSmithTableRecipe recipe = ((GunSmithTableMenuAccessor) this).callGetRecipe(recipeId,
+                player.level().getRecipeManager());
+        if (recipe == null) {
+            return craftableIngredients;
+        }
+
+        ICraftingService craftingService = this.blockEntity.getActionableNode().getGrid().getCraftingService();
+        List<GunSmithTableIngredient> ingredients = recipe.getInputs();
+        for (int i = 0; i < ingredients.size(); i++) {
+            if (findCraftableIngredientKey(ingredients.get(i), craftingService).isPresent()) {
+                craftableIngredients.add(i);
+            }
+        }
+        return craftableIngredients;
+    }
+
+    public void setSyncedIngredientCounts(ResourceLocation recipeId, Int2IntArrayMap counts, IntSet craftableIngredients) {
         this.syncedRecipeId = recipeId;
         this.syncedIngredientCounts.clear();
         this.syncedIngredientCounts.putAll(counts);
+        this.syncedCraftableIngredients.clear();
+        this.syncedCraftableIngredients.addAll(craftableIngredients);
     }
 
     public void clearSyncedIngredientCounts() {
         this.syncedRecipeId = null;
         this.syncedIngredientCounts.clear();
+        this.syncedCraftableIngredients.clear();
     }
 
     public boolean hasSyncedIngredientCounts(ResourceLocation recipeId) {
@@ -376,6 +464,10 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
 
     public int getSyncedIngredientCount(int index) {
         return this.syncedIngredientCounts.get(index);
+    }
+
+    public boolean isSyncedIngredientCraftable(int index) {
+        return this.syncedCraftableIngredients.contains(index);
     }
 
     public @Nullable AEGunSmithTableBlockEntity getBlockEntity() {
