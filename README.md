@@ -21,6 +21,12 @@ It adds AE-Support versions of TaCZ workbenches so you can view crafting ingredi
 - Combined ingredient counts from player inventory and AE2 network
 - Crafting that consumes player inventory first, then ME network storage
 
+## Server Configuration
+
+`appliedtacz-server.toml` provides `gunSmithTable.ingredientCountUpdateIntervalTicks` to control how often watched
+gun smith table ingredient counts are recalculated. The default is `10` server ticks and the valid range is `1` to
+`20`; lower values update the screen faster while using more server CPU.
+
 ## Support Workbench
 
 | Workbench | Base Mod | AE Support |
