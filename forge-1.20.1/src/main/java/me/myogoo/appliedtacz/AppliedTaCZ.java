@@ -1,6 +1,7 @@
 package me.myogoo.appliedtacz;
 
 import me.myogoo.appliedtacz.client.AppliedTaczClient;
+import me.myogoo.appliedtacz.config.AppliedTaczServerConfig;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
 import me.myogoo.appliedtacz.init.AETaCZBlockEntity;
 import me.myogoo.appliedtacz.init.AETaCZCreativeTab;
@@ -9,7 +10,9 @@ import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(AppliedTaCZ.MODID)
@@ -17,6 +20,9 @@ public class AppliedTaCZ {
     public static final String MODID = "appliedtacz";
 
     public AppliedTaCZ() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, AppliedTaczServerConfig.SPEC,
+                "appliedtacz-server.toml");
+
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         AppliedTaczNetwork.init();
 

@@ -18,6 +18,7 @@ import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
 import it.unimi.dsi.fastutil.ints.IntArraySet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
+import me.myogoo.appliedtacz.config.AppliedTaczServerConfig;
 import me.myogoo.appliedtacz.init.AETaczMenu;
 import me.myogoo.appliedtacz.mixin.GunSmithTableMenuAccessor;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
@@ -34,6 +35,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,6 +47,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class AEGunSmithTableMenu extends GunSmithTableMenu {
+    private static final String MEGA_CELLS_MOD_ID = "megacells";
+
     public static final MenuType<AEGunSmithTableMenu> TYPE = IForgeMenuType.create((windowId, inv, data) -> {
         BlockPos pos = data.readBlockPos();
         ResourceLocation blockId = data.readResourceLocation();
@@ -67,6 +71,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
     // Server-side: last counts sent to client, used to detect changes
     private Int2IntArrayMap lastSentCounts = new Int2IntArrayMap();
     private IntArraySet lastSentCraftableIngredients = new IntArraySet();
+    private long nextIngredientCountUpdateGameTime;
 
     public AEGunSmithTableMenu(int id, Inventory inventory, @Nullable AEGunSmithTableBlockEntity blockEntity) {
         this(id, inventory, blockEntity, AETaCZWorkbenchIndex.getMenuBlockId(blockEntity));
@@ -103,6 +108,7 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
             this.watchedRecipeId = recipeId;
             this.lastSentCounts.clear();
             this.lastSentCraftableIngredients.clear();
+            this.nextIngredientCountUpdateGameTime = 0;
         }
     }
 
@@ -125,6 +131,12 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
         if (this.watchedRecipeId == null) {
             return;
         }
+
+        long gameTime = player.level().getGameTime();
+        if (gameTime < this.nextIngredientCountUpdateGameTime) {
+            return;
+        }
+        scheduleNextIngredientCountUpdate(gameTime);
 
         Int2IntArrayMap currentCounts = getAvailableIngredientCounts(this.watchedRecipeId, player);
         IntArraySet currentCraftableIngredients = getCraftableIngredientIndices(this.watchedRecipeId, player);
@@ -166,29 +178,34 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
                 }
 
                 if (foundTotal < needed && storageService != null) {
-                    KeyCounter networkStorage = storageService.getCachedInventory();
-                    List<AEItemKey> candidates = findBestMatchingItemStack(gunIngredient, networkStorage);
+                    if (isMegaCellsLoaded()) {
+                        foundTotal += reserveDirectIngredientKeysFromNetwork(gunIngredient, storageService, toExtract,
+                                needed - foundTotal);
+                    } else {
+                        KeyCounter networkStorage = storageService.getCachedInventory();
+                        List<AEItemKey> candidates = findBestMatchingItemStack(gunIngredient, networkStorage);
 
-                    for (AEItemKey key : candidates) {
-                        if (foundTotal >= needed) {
-                            break;
+                        for (AEItemKey key : candidates) {
+                            if (foundTotal >= needed) {
+                                break;
+                            }
+
+                            long remaining = needed - foundTotal;
+                            long reserved = toExtract.getOrDefault(key, 0L);
+                            long available = Math.max(0L, networkStorage.get(key) - reserved);
+                            if (available <= 0) {
+                                continue;
+                            }
+
+                            long extractable = storageService.getInventory().extract(key, Math.min(remaining, available),
+                                    Actionable.SIMULATE, mySrc);
+                            if (extractable <= 0) {
+                                continue;
+                            }
+
+                            toExtract.put(key, reserved + extractable);
+                            foundTotal += extractable;
                         }
-
-                        long remaining = needed - foundTotal;
-                        long reserved = toExtract.getOrDefault(key, 0L);
-                        long available = Math.max(0L, networkStorage.get(key) - reserved);
-                        if (available <= 0) {
-                            continue;
-                        }
-
-                        long extractable = storageService.getInventory().extract(key, Math.min(remaining, available),
-                                Actionable.SIMULATE, mySrc);
-                        if (extractable <= 0) {
-                            continue;
-                        }
-
-                        toExtract.put(key, reserved + extractable);
-                        foundTotal += extractable;
                     }
                 }
 
@@ -227,9 +244,15 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
         IntArraySet craftableIngredients = getCraftableIngredientIndices(recipeId, player);
         this.lastSentCounts = new Int2IntArrayMap(getAvailableIngredientCounts(recipeId, player));
         this.lastSentCraftableIngredients = new IntArraySet(craftableIngredients);
+        scheduleNextIngredientCountUpdate(player.level().getGameTime());
         AppliedTaczNetwork.sendToPlayer(
                 new SyncIngredientCountsPacket(this.containerId, recipeId, this.lastSentCounts, craftableIngredients),
                 serverPlayer);
+    }
+
+    private void scheduleNextIngredientCountUpdate(long gameTime) {
+        this.nextIngredientCountUpdateGameTime = gameTime
+                + AppliedTaczServerConfig.ingredientCountUpdateIntervalTicks();
     }
 
     public void requestIngredientAutocraft(ResourceLocation recipeId, int ingredientIndex, ServerPlayer player) {
@@ -321,6 +344,39 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
                 .toList();
     }
 
+    private List<AEItemKey> getDirectIngredientItemKeys(GunSmithTableIngredient gunIngredient) {
+        return Arrays.stream(gunIngredient.getIngredient().getItems())
+                .map(AEItemKey::of)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+    }
+
+    private long reserveDirectIngredientKeysFromNetwork(GunSmithTableIngredient gunIngredient,
+            IStorageService storageService, Map<AEItemKey, Long> toExtract, long needed) {
+        long foundTotal = 0;
+
+        for (AEItemKey key : getDirectIngredientItemKeys(gunIngredient)) {
+            if (foundTotal >= needed) {
+                break;
+            }
+
+            long remaining = needed - foundTotal;
+            long reserved = toExtract.getOrDefault(key, 0L);
+            long totalExtractable = storageService.getInventory().extract(key, reserved + remaining,
+                    Actionable.SIMULATE, mySrc);
+            long extractable = Math.min(remaining, Math.max(0L, totalExtractable - reserved));
+            if (extractable <= 0) {
+                continue;
+            }
+
+            toExtract.put(key, reserved + extractable);
+            foundTotal += extractable;
+        }
+
+        return foundTotal;
+    }
+
     private long reserveFromPlayerInventory(GunSmithTableIngredient gunIngredient, IItemHandler playerItems,
             Int2IntArrayMap toExtractSlots, long needed) {
         long foundTotal = 0;
@@ -399,9 +455,31 @@ public class AEGunSmithTableMenu extends GunSmithTableMenu {
             return 0;
         }
 
+        if (isMegaCellsLoaded()) {
+            return getDirectlyExtractableIngredientCount(gunIngredient, storageService);
+        }
+
         return findBestMatchingItemStack(gunIngredient, storageService.getCachedInventory()).stream()
                 .mapToLong(key -> storageService.getCachedInventory().get(key))
                 .sum();
+    }
+
+    private long getDirectlyExtractableIngredientCount(GunSmithTableIngredient gunIngredient,
+            IStorageService storageService) {
+        long count = 0;
+        for (AEItemKey key : getDirectIngredientItemKeys(gunIngredient)) {
+            long remaining = Integer.MAX_VALUE - count;
+            if (remaining <= 0) {
+                break;
+            }
+
+            count += storageService.getInventory().extract(key, remaining, Actionable.SIMULATE, mySrc);
+        }
+        return count;
+    }
+
+    private boolean isMegaCellsLoaded() {
+        return ModList.get().isLoaded(MEGA_CELLS_MOD_ID);
     }
 
     public long getAvailableIngredientCount(GunSmithTableIngredient gunIngredient) {

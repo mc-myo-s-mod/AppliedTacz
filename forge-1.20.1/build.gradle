@@ -126,22 +126,16 @@ minecraft {
     }
 }
 
+def mixinRefmap = layout.buildDirectory.file("tmp/compileJava/${mod_id}.refmap.json")
+
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
 
     config "${mod_id}.mixins.json"
 }
 
-def copyMixinRefmap = tasks.register('copyMixinRefmap', Copy) {
-    dependsOn tasks.named('compileJava')
-    from(layout.buildDirectory.dir('tmp/compileJava')) {
-        include "${mod_id}.refmap.json"
-    }
-    into(layout.buildDirectory.dir('resources/main'))
-}
-
-tasks.named('classes').configure {
-    dependsOn(copyMixinRefmap)
+tasks.named('compileJava', JavaCompile).configure {
+    outputs.file(mixinRefmap)
 }
 
 repositories {
@@ -180,7 +174,6 @@ dependencies {
     implementation fg.deobf("appeng:appliedenergistics2-forge:${AE2_version}")
     runtimeOnly fg.deobf("appeng:appliedenergistics2-forge:${AE2_version}")
 
-    compileOnly fg.deobf("maven.modrinth:jjuIRIVr:${MEGACells_version}")
     runtimeOnly fg.deobf("maven.modrinth:jjuIRIVr:${MEGACells_version}")
     runtimeOnly fg.deobf("maven.modrinth:9s6osm5g:${ClothConfig_version}")
 
@@ -193,6 +186,9 @@ dependencies {
 // When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
 // See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
 tasks.named('processResources', ProcessResources).configure {
+    dependsOn tasks.named('compileJava')
+    from(mixinRefmap)
+
     var replaceProperties = [minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
                              forge_version       : forge_version, forge_version_range: forge_version_range,
                              loader_version_range: loader_version_range,
