@@ -2,6 +2,7 @@ package me.myogoo.appliedtacz;
 
 import appeng.api.AECapabilities;
 import me.myogoo.appliedtacz.client.AppliedTaczClient;
+import me.myogoo.appliedtacz.config.AppliedTaczServerConfig;
 import me.myogoo.appliedtacz.datagen.AppliedTaczDataGenerators;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
 import me.myogoo.appliedtacz.registry.ModBlockEntities;
@@ -16,7 +17,9 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -29,7 +32,10 @@ public class AppliedTaCZ {
             ResourceLocation.fromNamespaceAndPath("tacz", "other")
     );
 
-    public AppliedTaCZ(IEventBus modEventBus) {
+    public AppliedTaCZ(IEventBus modEventBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.SERVER, AppliedTaczServerConfig.SPEC,
+                "appliedtacz-server.toml");
+
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
         ModMenus.MENUS.register(modEventBus);

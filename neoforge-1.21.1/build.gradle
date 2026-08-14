@@ -113,7 +113,6 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 dependencies {
     implementation "org.appliedenergistics:appliedenergistics2:${AE2_version}"
     implementation "maven.modrinth:tacz-1.21.1:${TaCZ_version}"
-    compileOnly "maven.modrinth:jjuIRIVr:${MEGACells_version}"
     runtimeOnly "maven.modrinth:jjuIRIVr:${MEGACells_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${JEI_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
