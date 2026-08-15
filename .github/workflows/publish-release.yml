@@ -1,0 +1,280 @@
+name: Publish AppliedTaCZ Release
+
+run-name: Publish ${{ github.event.release.tag_name || inputs.release_tag }}
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing GitHub Release tag to publish or backfill
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-release-${{ github.repository }}-${{ github.event.release.tag_name || inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build release artifact
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.metadata.outputs.artifact_name }}
+      jar: ${{ steps.metadata.outputs.jar }}
+      java_version: ${{ steps.metadata.outputs.java_version }}
+      mc_version: ${{ steps.metadata.outputs.mc_version }}
+      mod_loader: ${{ steps.metadata.outputs.mod_loader }}
+      mod_version: ${{ steps.metadata.outputs.mod_version }}
+      module: ${{ steps.metadata.outputs.module }}
+      tacz_dependency: ${{ steps.metadata.outputs.tacz_dependency }}
+      version_type: ${{ steps.metadata.outputs.version_type }}
+
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.release_tag }}
+          fetch-depth: 0
+
+      - name: Verify tag belongs to master
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin master:refs/remotes/origin/master
+          if ! git merge-base --is-ancestor HEAD refs/remotes/origin/master; then
+            echo "::error::Release tag ${RELEASE_TAG} does not point to a commit on master."
+            exit 1
+          fi
+
+      - name: Read release metadata
+        id: metadata
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PRERELEASE: ${{ github.event.release.prerelease || 'false' }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: |
+          set -euo pipefail
+
+          release_version="${RELEASE_TAG#v}"
+          case "$release_version" in
+            1.20.1-*)
+              module="forge-1.20.1"
+              mc_version="1.20.1"
+              mod_loader="forge"
+              java_version="17"
+              tacz_dependency="timeless-and-classics-zero(required){modrinth:SzzJttH8}{curseforge:1028108}"
+              ;;
+            1.21.1-*)
+              module="neoforge-1.21.1"
+              mc_version="1.21.1"
+              mod_loader="neoforge"
+              java_version="21"
+              tacz_dependency="tacz-1.21.1(required){modrinth:OypNE65K}{curseforge:1353462}"
+              ;;
+            *)
+              echo "::error::Unsupported release tag '${RELEASE_TAG}'."
+              echo "::error::Use v1.20.1-<mod-version> or v1.21.1-<mod-version>."
+              exit 1
+              ;;
+          esac
+
+          mod_version="${release_version#"${mc_version}-"}"
+          if [[ ! "$mod_version" =~ ^[0-9]+(\.[0-9]+){2}([.-][0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
+            echo "::error::Invalid mod version '${mod_version}' parsed from '${RELEASE_TAG}'."
+            exit 1
+          fi
+
+          mkdir -p dist
+          if [[ "$EVENT_NAME" == "release" ]]; then
+            is_prerelease="$EVENT_PRERELEASE"
+            printf '%s\n' "$RELEASE_BODY" > dist/release-notes.md
+          else
+            if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null; then
+              echo "::error::GitHub Release '${RELEASE_TAG}' does not exist."
+              exit 1
+            fi
+            is_prerelease="$(gh release view "$RELEASE_TAG" --repo "$GH_REPO" --json isPrerelease --jq '.isPrerelease')"
+            gh release view "$RELEASE_TAG" --repo "$GH_REPO" --json body --jq '.body' > dist/release-notes.md
+          fi
+
+          if [[ ! -s dist/release-notes.md ]] || [[ -z "$(tr -d '[:space:]' < dist/release-notes.md)" ]]; then
+            if [[ -s CHANGELOG.md ]]; then
+              cp CHANGELOG.md dist/release-notes.md
+            else
+              printf 'AppliedTaCZ %s for Minecraft %s.\n' "$mod_version" "$mc_version" > dist/release-notes.md
+            fi
+          fi
+
+          version_type="release"
+          if [[ "$is_prerelease" == "true" ]]; then
+            version_type="beta"
+          fi
+
+          artifact_name="AppliedTaCZ-${mc_version}-${mod_version}"
+
+          echo "artifact_name=${artifact_name}" >> "$GITHUB_OUTPUT"
+          echo "jar=${artifact_name}.jar" >> "$GITHUB_OUTPUT"
+          echo "java_version=${java_version}" >> "$GITHUB_OUTPUT"
+          echo "mc_version=${mc_version}" >> "$GITHUB_OUTPUT"
+          echo "mod_loader=${mod_loader}" >> "$GITHUB_OUTPUT"
+          echo "mod_version=${mod_version}" >> "$GITHUB_OUTPUT"
+          echo "module=${module}" >> "$GITHUB_OUTPUT"
+          echo "tacz_dependency=${tacz_dependency}" >> "$GITHUB_OUTPUT"
+          echo "version_type=${version_type}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: microsoft
+          java-version: ${{ steps.metadata.outputs.java_version }}
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
+      - name: Build selected Minecraft version
+        shell: bash
+        env:
+          RELEASE_MOD_VERSION: ${{ steps.metadata.outputs.mod_version }}
+          TARGET_MODULE: ${{ steps.metadata.outputs.module }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew ":${TARGET_MODULE}:build" \
+            -Pmod_version="${RELEASE_MOD_VERSION}" \
+            --build-cache \
+            --no-daemon \
+            --console=plain
+
+      - name: Collect release artifact
+        shell: bash
+        env:
+          JAR: ${{ steps.metadata.outputs.jar }}
+          TARGET_MODULE: ${{ steps.metadata.outputs.module }}
+        run: |
+          set -euo pipefail
+
+          artifact_path="${TARGET_MODULE}/build/libs/${JAR}"
+          if [[ ! -f "$artifact_path" ]]; then
+            echo "::error::Expected release jar was not produced: ${artifact_path}"
+            find "${TARGET_MODULE}/build/libs" -maxdepth 1 -type f -name '*.jar' -print || true
+            exit 1
+          fi
+
+          cp "$artifact_path" "dist/${JAR}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-payload
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  attach-github-release:
+    name: Attach jar to GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download release payload
+        uses: actions/download-artifact@v8
+        with:
+          name: release-payload
+          path: dist
+
+      - name: Upload jar to the existing release
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          JAR: ${{ needs.build.outputs.jar }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" "dist/${JAR}" --repo "$GH_REPO" --clobber
+
+  publish-platforms:
+    name: Publish ${{ needs.build.outputs.module }}
+    needs:
+      - build
+      - attach-github-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download release payload
+        uses: actions/download-artifact@v8
+        with:
+          name: release-payload
+          path: dist
+
+      - name: Verify publishing secrets
+        shell: bash
+        env:
+          CURSEFORGE_PROJECT_ID: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          missing=0
+
+          for name in MODRINTH_PROJECT_ID MODRINTH_TOKEN CURSEFORGE_PROJECT_ID CURSEFORGE_TOKEN; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::GitHub Actions configuration ${name} is not set."
+              missing=1
+            fi
+          done
+
+          exit "$missing"
+
+      - name: Verify release payload
+        shell: bash
+        env:
+          JAR: ${{ needs.build.outputs.jar }}
+        run: |
+          set -euo pipefail
+          test -s "dist/${JAR}"
+          test -s dist/release-notes.md
+
+      - name: Publish to Modrinth and CurseForge
+        uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_PROJECT_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          modrinth-featured: ${{ needs.build.outputs.version_type == 'release' }}
+
+          curseforge-id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+          name: ${{ needs.build.outputs.artifact_name }}
+          version: ${{ needs.build.outputs.mc_version }}-${{ needs.build.outputs.mod_version }}
+          version-type: ${{ needs.build.outputs.version_type }}
+          changelog-file: dist/release-notes.md
+          files: dist/${{ needs.build.outputs.jar }}
+          game-versions: ${{ needs.build.outputs.mc_version }}
+          loaders: ${{ needs.build.outputs.mod_loader }}
+          environment: "client | server"
+          java: ${{ needs.build.outputs.java_version }}
+          retry-attempts: 2
+          retry-delay: 10000
+          fail-mode: fail
+
+          dependencies: |
+            ae2(required){modrinth:XxWD5pD3}{curseforge:223794}
+            ${{ needs.build.outputs.tacz_dependency }}
+            mega-cells(optional){modrinth:jjuIRIVr}{curseforge:622112}
