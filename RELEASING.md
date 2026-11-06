@@ -34,6 +34,27 @@ Stable GitHub Releases publish as `release`; GitHub pre-releases publish as `bet
 
 ## Automatic release
 
+### 1.21.1-19.0.2 preparation
+
+This is a workbench compatibility patch for official TaCZ 1.2.0 on NeoForge. Do not include the uncommitted
+TaCZ Molecular Assembler work, Extended assemblers, or their related assets in the release commit or JAR.
+Build from the clean release checkout, not the working directory containing those unreleased sources.
+
+Before publishing:
+
+- Run `cmd.exe /c "gradlew.bat :neoforge-1.21.1:compileJava :neoforge-1.21.1:build --console=plain"`.
+- Smoke-test the client and dedicated server with official TaCZ 1.2.0.
+- In an ME ammo workbench, hold a Glock 17, turn off the held-item filter, select 12g ammunition, request a
+  craftable missing ingredient, and return from the AE2 crafting screen. Confirm the same recipe, tab, recipe
+  page, mouse position, and ME ingredient counts are restored. Repeat with a matching recipe and an empty hand.
+- Check that a normal TaCZ workbench and table-specific recipe restrictions still work.
+- Inspect the release JAR for unintended assembler classes, models, blockstates, recipes, and language entries.
+- Publish only the `1.21.1-19.0.2` changelog section. The historical entries below it describe earlier releases.
+
+The intended tag is `v1.21.1-19.0.2`. Creating or publishing the GitHub Release must wait for explicit approval.
+
+### Publishing steps
+
 1. Update and verify the target module.
 2. Tag the release commit with the matching version tag.
 3. Create a GitHub Release for that tag and publish it.

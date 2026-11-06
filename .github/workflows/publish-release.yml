@@ -81,7 +81,7 @@ jobs:
               mc_version="1.21.1"
               mod_loader="neoforge"
               java_version="21"
-              tacz_dependency="tacz-1.21.1(required){modrinth:OypNE65K}{curseforge:1353462}"
+              tacz_dependency="timeless-and-classics-zero(required){modrinth:SzzJttH8}{curseforge:1028108}"
               ;;
             *)
               echo "::error::Unsupported release tag '${RELEASE_TAG}'."
