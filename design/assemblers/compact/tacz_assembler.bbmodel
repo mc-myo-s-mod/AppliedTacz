@@ -1,0 +1,3200 @@
+{
+  "meta": {
+    "format_version": "5.0",
+    "model_format": "java_block",
+    "box_uv": false
+  },
+  "name": "tacz_assembler",
+  "resolution": {
+    "width": 64,
+    "height": 64
+  },
+  "textures": [
+    {
+      "path": "H:/IntelliJ/Minecraft/AppliedTaCZ/common/src/main/resources/assets/appliedtacz/textures/block/tacz_assembler.png",
+      "name": "tacz_assembler.png",
+      "id": "atlas",
+      "namespace": "appliedtacz",
+      "folder": "block",
+      "width": 64,
+      "height": 64,
+      "uv_width": 64,
+      "uv_height": 64,
+      "mode": "bitmap",
+      "saved": true,
+      "uuid": "4dea90c3-25ef-3f72-530c-282fa2ddbc61",
+      "relative_path": "../../../common/src/main/resources/assets/appliedtacz/textures/block/tacz_assembler.png"
+    },
+    {
+      "path": "H:/IntelliJ/Minecraft/fork/Applied-Energistics-2_1_21_1/src/main/resources/assets/ae2/textures/block/molecular_assembler.png",
+      "name": "molecular_assembler.png",
+      "id": "ae2frame",
+      "namespace": "ae2",
+      "folder": "block",
+      "width": 16,
+      "height": 16,
+      "uv_width": 16,
+      "uv_height": 16,
+      "mode": "bitmap",
+      "saved": true,
+      "uuid": "9648a95d-7066-f9bf-c037-3702b3b6441c",
+      "relative_path": "../../../../fork/Applied-Energistics-2_1_21_1/src/main/resources/assets/ae2/textures/block/molecular_assembler.png"
+    }
+  ],
+  "elements": [
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "to": [
+        2,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            62,
+            4
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            62,
+            4
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "41dcaf99-1b9d-08e8-21e0-83e6daccc0cb",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        1,
+        1
+      ],
+      "to": [
+        15,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            62,
+            4
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            62,
+            4
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "91e669d8-33b3-2533-4f58-c47d18da5837",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        1,
+        1
+      ],
+      "to": [
+        14,
+        2,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "23dce672-1e5e-cc23-7bd5-bd0afbf3112a",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        1,
+        14
+      ],
+      "to": [
+        14,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "68e78829-9a69-ef5d-f37b-6b18b24da3b3",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        14,
+        1
+      ],
+      "to": [
+        2,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            62,
+            30
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            62,
+            30
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "08ea743e-f310-d5f3-df0f-58d1cae504d3",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        14,
+        1
+      ],
+      "to": [
+        15,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            62,
+            30
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            62,
+            30
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "35968e9a-7641-a18b-e1eb-399921e24022",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        14,
+        1
+      ],
+      "to": [
+        14,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            36,
+            2,
+            60,
+            4
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "5a6b3a7a-ce12-f3a2-b34a-8493bd8ebb45",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        14,
+        14
+      ],
+      "to": [
+        14,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            36,
+            28,
+            60,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "5b73087b-789a-b1e2-8873-5b40e79f4acf",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        2,
+        1
+      ],
+      "to": [
+        2,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            34,
+            2,
+            36,
+            4
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "95d27e81-d236-c123-84cb-ec83ec16f574",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        2,
+        14
+      ],
+      "to": [
+        2,
+        14,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            34,
+            28,
+            36,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "0fb46388-6856-3bd2-1797-0c8e725281d0",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        2,
+        1
+      ],
+      "to": [
+        15,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            34,
+            4,
+            36,
+            28
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            60,
+            2,
+            62,
+            4
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "13e2d596-d351-fa91-1667-393d16e110c0",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        2,
+        14
+      ],
+      "to": [
+        15,
+        14,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "south": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "east": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "west": {
+          "texture": 0,
+          "uv": [
+            60,
+            4,
+            62,
+            28
+          ]
+        },
+        "up": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        },
+        "down": {
+          "texture": 0,
+          "uv": [
+            60,
+            28,
+            62,
+            30
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "e4fb9cb7-c31b-4527-4797-cf4fa4f826eb",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            15,
+            14,
+            16,
+            16
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            0,
+            14,
+            1,
+            16
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            14,
+            16,
+            16
+          ],
+          "cullface": "west"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            15,
+            16,
+            14
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            15,
+            0,
+            16
+          ],
+          "rotation": 90,
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "8690633d-7da0-211c-2656-c74f751cf9a7",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        0,
+        0
+      ],
+      "to": [
+        2,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            14,
+            15,
+            15,
+            16
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            15,
+            0,
+            14
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            1,
+            15,
+            2,
+            16
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            14,
+            0,
+            15
+          ],
+          "rotation": 90,
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "9e8edab1-01e8-042e-db88-f50ed7a30805",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        1,
+        0
+      ],
+      "to": [
+        2,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            14,
+            14,
+            15,
+            15
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            1,
+            16,
+            0,
+            15
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            16,
+            1,
+            15
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "de5548ec-2d36-d30c-2025-83877f75fd43",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        1,
+        15
+      ],
+      "to": [
+        2,
+        2,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            16,
+            15,
+            15
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            1,
+            14,
+            2,
+            15
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            15,
+            16,
+            16,
+            15
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "30c411ff-8336-6593-d7c4-afc0dcdb50eb",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            0,
+            14,
+            1,
+            16
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            14,
+            0,
+            16
+          ],
+          "cullface": "east"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            15,
+            14,
+            16,
+            16
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            14,
+            16,
+            15
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            16,
+            0,
+            15
+          ],
+          "rotation": 90,
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "cae634c8-286c-cd9e-3f03-51b85484791a",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        0,
+        0
+      ],
+      "to": [
+        15,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            15,
+            2,
+            16
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            15,
+            15,
+            16
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            15,
+            16,
+            14
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            15,
+            0,
+            14
+          ],
+          "rotation": 90,
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "8dbd2fcd-3e14-8996-f075-368cedc4811f",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        1,
+        0
+      ],
+      "to": [
+        15,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            14,
+            2,
+            15
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            16,
+            1,
+            15
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            15,
+            1,
+            16
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "522551c9-78b2-786c-1502-c4478e379c73",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        1,
+        15
+      ],
+      "to": [
+        15,
+        2,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            14,
+            15,
+            15
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            15,
+            16,
+            16,
+            15
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            15,
+            15,
+            16,
+            16
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "27d71506-a9a3-2c7d-a581-617baf0409e6",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        0,
+        0
+      ],
+      "to": [
+        14,
+        1,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            15,
+            14,
+            16
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            15,
+            2,
+            14
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            14,
+            14,
+            2,
+            16
+          ],
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "0b32fde3-e50d-5009-2554-8ca4268be860",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        1,
+        0
+      ],
+      "to": [
+        14,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            14,
+            14,
+            15
+          ],
+          "cullface": "north"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            14,
+            14,
+            2,
+            15
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "8625d28d-2522-3878-436c-c95fa0f33995",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        15,
+        0
+      ],
+      "to": [
+        14,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            0,
+            14,
+            1
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            2,
+            1
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            14,
+            0,
+            2,
+            2
+          ],
+          "cullface": "up"
+        }
+      },
+      "type": "cube",
+      "uuid": "f7ce5c8f-9739-331f-77f6-ebf905392b0f",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        14,
+        0
+      ],
+      "to": [
+        14,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            1,
+            14,
+            2
+          ],
+          "cullface": "north"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            14,
+            1,
+            2,
+            2
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "4a6d2981-42c9-50f3-bef8-87987f847aa4",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        15,
+        14
+      ],
+      "to": [
+        14,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            1
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            0,
+            2,
+            1
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            2,
+            0
+          ],
+          "cullface": "up"
+        }
+      },
+      "type": "cube",
+      "uuid": "5917cb9a-8fff-b923-2238-6df1060f3006",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        14,
+        15
+      ],
+      "to": [
+        14,
+        15,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            1,
+            2,
+            2
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            2,
+            1
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "34546cdc-4e7b-968b-e14c-5db23b8fa97f",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        0,
+        14
+      ],
+      "to": [
+        14,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            15,
+            14,
+            14
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            15,
+            2,
+            16
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            14,
+            16,
+            2,
+            14
+          ],
+          "cullface": "down"
+        }
+      },
+      "type": "cube",
+      "uuid": "25cd8c2a-5f5f-5379-1d91-060920fcdbb0",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        1,
+        15
+      ],
+      "to": [
+        14,
+        2,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            14,
+            2,
+            15
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            14,
+            15,
+            2,
+            14
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "083eb74c-cdcd-8fe7-a1b5-52db4bc5f571",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            0,
+            0,
+            2
+          ],
+          "cullface": "east"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            15,
+            0,
+            16,
+            2
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "rotation": 90,
+          "cullface": "up"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            2,
+            0,
+            1
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "08946e17-37f9-3841-48ae-b76d8b15c212",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        15,
+        0
+      ],
+      "to": [
+        15,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            0,
+            2,
+            1
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            0,
+            15,
+            1
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            2,
+            16,
+            1
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            1,
+            16,
+            2
+          ],
+          "rotation": 90,
+          "cullface": "up"
+        }
+      },
+      "type": "cube",
+      "uuid": "b3c9a9da-7f76-df02-151b-a0b6f339c7ff",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        14,
+        0
+      ],
+      "to": [
+        15,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            1,
+            2,
+            2
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            1,
+            1,
+            0,
+            0
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "6d6f8df4-25c0-950d-a899-21a4f318ad6a",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        14,
+        15
+      ],
+      "to": [
+        15,
+        15,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            1,
+            15,
+            2
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            15,
+            1,
+            16,
+            0
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            1,
+            15,
+            0
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "8cd29991-043d-9764-b49c-117313dcdcc7",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        1,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            0,
+            0,
+            2
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            16,
+            0,
+            15,
+            2
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "west"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            1,
+            16,
+            0
+          ],
+          "rotation": 90,
+          "cullface": "up"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            1,
+            0,
+            2
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "429523ce-f294-5495-3b90-971f2c7a1479",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        15,
+        0
+      ],
+      "to": [
+        2,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            0,
+            1,
+            1
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            2,
+            0,
+            1
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            15,
+            0,
+            14,
+            1
+          ],
+          "cullface": "south"
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            0,
+            2,
+            16,
+            1
+          ],
+          "rotation": 90,
+          "cullface": "up"
+        }
+      },
+      "type": "cube",
+      "uuid": "2e94e7ab-24e4-894d-09b1-781e8073b105",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        14,
+        0
+      ],
+      "to": [
+        2,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            1,
+            1,
+            2
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            1,
+            1,
+            0,
+            0
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "504c2635-c1c3-3258-ab25-4883553ef4c2",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        14,
+        15
+      ],
+      "to": [
+        2,
+        15,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            1,
+            15,
+            0
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            15,
+            1,
+            14,
+            2
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            16,
+            0,
+            15,
+            1
+          ],
+          "rotation": 90
+        }
+      },
+      "type": "cube",
+      "uuid": "f6a9d0a5-71cb-eb17-b37f-0a5324b19050",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        1,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ]
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            16,
+            2,
+            14,
+            14
+          ],
+          "cullface": "west"
+        }
+      },
+      "type": "cube",
+      "uuid": "e5fcaf0c-e672-23ff-636a-4c283c6559b4",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        2,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            15,
+            2,
+            14,
+            14
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "9d9445b2-0223-f583-deb9-1ce6b39dfe08",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        2,
+        14
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ]
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            16,
+            2,
+            14,
+            14
+          ],
+          "cullface": "east"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "cullface": "south"
+        }
+      },
+      "type": "cube",
+      "uuid": "83e5b388-1374-b66c-278b-a76eec7ee45e",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        2,
+        15
+      ],
+      "to": [
+        15,
+        14,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": 1,
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            15,
+            2,
+            14,
+            14
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "2007ded6-d345-2184-47d9-e462b88c6866",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "cullface": "north"
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            0,
+            14
+          ],
+          "cullface": "east"
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "9b53e1d5-96ce-c999-7791-74b298f17471",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        2,
+        0
+      ],
+      "to": [
+        15,
+        14,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            1,
+            14
+          ]
+        }
+      },
+      "type": "cube",
+      "uuid": "722a9c23-7328-47c1-5dd8-47de2007c973",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        2,
+        14
+      ],
+      "to": [
+        1,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "cullface": "south"
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            0,
+            14
+          ],
+          "cullface": "west"
+        }
+      },
+      "type": "cube",
+      "uuid": "3bffb1e6-7536-fdac-180e-b6d4a1942c59",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        2,
+        15
+      ],
+      "to": [
+        2,
+        14,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            1,
+            14
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "cullface": "south"
+        }
+      },
+      "type": "cube",
+      "uuid": "597c4a17-f001-1974-2920-011384b1bc59",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "from": [
+        2,
+        2,
+        2
+      ],
+      "to": [
+        14,
+        14,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "east": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "south": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "west": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "up": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        },
+        "down": {
+          "texture": 1,
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ]
+        }
+      },
+      "name": "AE2 glass",
+      "type": "cube",
+      "uuid": "42565c92-ea51-792b-5dd6-2977781d4ee5",
+      "box_uv": false,
+      "autouv": 0,
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "outliner": [
+    {
+      "name": "Outer frame",
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "uuid": "c2ee7f78-fdaf-253f-453a-9de876f37176",
+      "children": [
+        "8690633d-7da0-211c-2656-c74f751cf9a7",
+        "9e8edab1-01e8-042e-db88-f50ed7a30805",
+        "de5548ec-2d36-d30c-2025-83877f75fd43",
+        "30c411ff-8336-6593-d7c4-afc0dcdb50eb",
+        "cae634c8-286c-cd9e-3f03-51b85484791a",
+        "8dbd2fcd-3e14-8996-f075-368cedc4811f",
+        "522551c9-78b2-786c-1502-c4478e379c73",
+        "27d71506-a9a3-2c7d-a581-617baf0409e6",
+        "0b32fde3-e50d-5009-2554-8ca4268be860",
+        "8625d28d-2522-3878-436c-c95fa0f33995",
+        "f7ce5c8f-9739-331f-77f6-ebf905392b0f",
+        "4a6d2981-42c9-50f3-bef8-87987f847aa4",
+        "5917cb9a-8fff-b923-2238-6df1060f3006",
+        "34546cdc-4e7b-968b-e14c-5db23b8fa97f",
+        "25cd8c2a-5f5f-5379-1d91-060920fcdbb0",
+        "083eb74c-cdcd-8fe7-a1b5-52db4bc5f571",
+        "08946e17-37f9-3841-48ae-b76d8b15c212",
+        "b3c9a9da-7f76-df02-151b-a0b6f339c7ff",
+        "6d6f8df4-25c0-950d-a899-21a4f318ad6a",
+        "8cd29991-043d-9764-b49c-117313dcdcc7",
+        "429523ce-f294-5495-3b90-971f2c7a1479",
+        "2e94e7ab-24e4-894d-09b1-781e8073b105",
+        "504c2635-c1c3-3258-ab25-4883553ef4c2",
+        "f6a9d0a5-71cb-eb17-b37f-0a5324b19050",
+        "e5fcaf0c-e672-23ff-636a-4c283c6559b4",
+        "9d9445b2-0223-f583-deb9-1ce6b39dfe08",
+        "83e5b388-1374-b66c-278b-a76eec7ee45e",
+        "2007ded6-d345-2184-47d9-e462b88c6866",
+        "9b53e1d5-96ce-c999-7791-74b298f17471",
+        "722a9c23-7328-47c1-5dd8-47de2007c973",
+        "3bffb1e6-7536-fdac-180e-b6d4a1942c59",
+        "597c4a17-f001-1974-2920-011384b1bc59"
+      ]
+    },
+    {
+      "name": "Inner frame",
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "uuid": "f87a5c27-49e4-98de-a866-3870c3777587",
+      "children": [
+        "41dcaf99-1b9d-08e8-21e0-83e6daccc0cb",
+        "91e669d8-33b3-2533-4f58-c47d18da5837",
+        "23dce672-1e5e-cc23-7bd5-bd0afbf3112a",
+        "68e78829-9a69-ef5d-f37b-6b18b24da3b3",
+        "08ea743e-f310-d5f3-df0f-58d1cae504d3",
+        "35968e9a-7641-a18b-e1eb-399921e24022",
+        "5a6b3a7a-ce12-f3a2-b34a-8493bd8ebb45",
+        "5b73087b-789a-b1e2-8873-5b40e79f4acf",
+        "95d27e81-d236-c123-84cb-ec83ec16f574",
+        "0fb46388-6856-3bd2-1797-0c8e725281d0",
+        "13e2d596-d351-fa91-1667-393d16e110c0",
+        "e4fb9cb7-c31b-4527-4797-cf4fa4f826eb"
+      ]
+    },
+    {
+      "name": "AE2 glass",
+      "origin": [
+        8,
+        8,
+        8
+      ],
+      "uuid": "43928ab3-754a-5b40-2b5b-371c4fade7c2",
+      "children": [
+        "42565c92-ea51-792b-5dd6-2977781d4ee5"
+      ]
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.625,
+        0.625,
+        0.625
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    }
+  }
+}

@@ -34,7 +34,20 @@ Stable GitHub Releases publish as `release`; GitHub pre-releases publish as `bet
 
 ## Automatic release
 
-### 1.21.1-19.0.2 preparation
+### 1.20.1-15.1.0 / 1.21.1-19.1.0 preparation
+
+These versions include the normal and Extended TaCZ Molecular Assemblers and the TaCZ Pattern Encoding
+Terminal on both loaders. Both target official TaCZ 1.2.0; the official NeoForge dependency is currently
+marked beta. The assembler exclusion below applies only to the historical 19.0.2 compatibility patch.
+
+Before publishing, compile, run data generation, build, and run the GameTests for each module. Verify the
+packaged JARs with MCT in isolated copies of the target modpacks, including actual pattern encoding and
+crafting, upgrades, offline behavior, rendering, and save/reload. Check the deployed artifact hashes and
+ensure only one AppliedTaCZ JAR and one matching TaCZ JAR are installed per instance.
+
+Local instance deployment does not authorize pushing commits, creating tags, or publishing releases.
+
+### Historical 1.21.1-19.0.2 preparation
 
 This is a workbench compatibility patch for official TaCZ 1.2.0 on NeoForge. Do not include the uncommitted
 TaCZ Molecular Assembler work, Extended assemblers, or their related assets in the release commit or JAR.
