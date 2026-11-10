@@ -1,6 +1,7 @@
 package me.myogoo.appliedtacz.init;
 
 import me.myogoo.appliedtacz.AppliedTaCZ;
+import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -34,7 +35,14 @@ public class AETaCZCreativeTab {
     }
 
     private static void addAppliedWorkbenches(CreativeModeTab.Output output) {
+        output.accept(AETaCZBlock.TACZ_PATTERN_ENCODING_TERMINAL.get());
         AETaCZWorkbenchIndex.entries()
                 .forEach(entry -> output.accept(entry.createAppliedStack()));
+        for (WorkbenchUpgradeKind kind : WorkbenchUpgradeKind.values()) {
+            output.accept(kind.assemblerResult());
+        }
+        output.accept(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_GUN.get());
+        output.accept(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_AMMO.get());
+        output.accept(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get());
     }
 }

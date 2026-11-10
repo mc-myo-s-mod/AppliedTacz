@@ -1,0 +1,28 @@
+{
+  "includes": ["common/common.json"],
+  "generatedBackground": {"width": 256, "height": 240},
+  "slots": {
+    "MACHINE_OUTPUT": {"left": 16, "top": 74},
+    "UPGRADE": {"left": 120, "top": 74, "grid": "HORIZONTAL"},
+    "ENCODED_PATTERN": {"left": 48, "top": 117, "grid": "HORIZONTAL"},
+    "PLAYER_INVENTORY": {"left": 48, "top": 158, "grid": "BREAK_AFTER_9COLS"},
+    "PLAYER_HOTBAR": {"left": 48, "top": 216, "grid": "HORIZONTAL"}
+  },
+  "text": {
+    "dialog_title": {"position": {"left": 12, "top": 10}, "maxWidth": 232},
+    "network": {"position": {"left": 12, "top": 31}},
+    "status": {"position": {"left": 12, "top": 43}},
+    "upgrades": {
+      "text": {"translate": "gui.appliedtacz.assembler.upgrades"},
+      "position": {"left": 120, "top": 61}
+    },
+    "patterns": {
+      "text": {"translate": "gui.appliedtacz.assembler.patterns"},
+      "position": {"left": 48, "top": 103}
+    },
+    "player_inventory_title": {
+      "text": {"translate": "container.inventory"},
+      "position": {"left": 48, "top": 146}
+    }
+  }
+}

@@ -1,5 +1,6 @@
 package me.myogoo.appliedtacz.event;
 
+import appeng.core.definitions.AEBlocks;
 import com.mojang.logging.LogUtils;
 import com.tacz.guns.api.item.IBlock;
 import me.myogoo.appliedtacz.AppliedTaCZ;
@@ -36,6 +37,7 @@ public final class WorkbenchUpgradeRecipeEvents {
     private static final TagKey<Item> INTERFACE_TAG =
             TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("ae2", "interface"));
     private static final String DYNAMIC_RECIPE_PREFIX = "workbench_upgrade/";
+    private static final String ASSEMBLER_RECIPE_PREFIX = "assembler_upgrade/";
 
     private WorkbenchUpgradeRecipeEvents() {
     }
@@ -79,6 +81,9 @@ public final class WorkbenchUpgradeRecipeEvents {
 
         for (var entry : AETaCZWorkbenchIndex.entries()) {
             recipes.add(createRecipe(entry));
+            if (WorkbenchUpgradeKind.forAssembler(entry.blockId()) != null) {
+                recipes.add(createAssemblerRecipe(entry));
+            }
         }
 
         return recipes;
@@ -95,6 +100,22 @@ public final class WorkbenchUpgradeRecipeEvents {
                 AppliedTaCZ.MODID + ":workbench_upgrade",
                 CraftingBookCategory.MISC,
                 createResult(entry.kind(), entry.blockId()),
+                ingredients
+        );
+        return new RecipeHolder<>(id, recipe);
+    }
+
+    private static RecipeHolder<?> createAssemblerRecipe(AETaCZWorkbenchIndex.Entry entry) {
+        NonNullList<Ingredient> ingredients = NonNullList.create();
+        ingredients.add(createWorkbenchIngredient(entry.baseWorkbench(), entry.blockId()));
+        ingredients.add(Ingredient.of(AEBlocks.MOLECULAR_ASSEMBLER.asItem()));
+        ingredients.add(Ingredient.of(AEBlocks.PATTERN_PROVIDER.asItem()));
+
+        ResourceLocation id = assemblerRecipeId(entry.blockId());
+        ShapelessRecipe recipe = new ShapelessRecipe(
+                AppliedTaCZ.MODID + ":assembler_upgrade",
+                CraftingBookCategory.MISC,
+                entry.createAssemblerStack(),
                 ingredients
         );
         return new RecipeHolder<>(id, recipe);
@@ -129,12 +150,22 @@ public final class WorkbenchUpgradeRecipeEvents {
 
     private static boolean isAppliedTaczWorkbenchUpgradeRecipe(ResourceLocation id) {
         return AppliedTaCZ.MODID.equals(id.getNamespace())
-                && id.getPath().startsWith(DYNAMIC_RECIPE_PREFIX);
+                && (id.getPath().startsWith(DYNAMIC_RECIPE_PREFIX)
+                || id.getPath().startsWith(ASSEMBLER_RECIPE_PREFIX));
     }
 
     private static ResourceLocation recipeId(WorkbenchUpgradeKind kind, ResourceLocation blockId) {
         return id(DYNAMIC_RECIPE_PREFIX
                 + BuiltInRegistries.BLOCK.getKey(kind.resultBlock()).getPath()
+                + "/"
+                + blockId.getNamespace()
+                + "/"
+                + blockId.getPath());
+    }
+
+    private static ResourceLocation assemblerRecipeId(ResourceLocation blockId) {
+        return id(ASSEMBLER_RECIPE_PREFIX
+                + BuiltInRegistries.BLOCK.getKey(WorkbenchUpgradeKind.assemblerBlockFor(blockId)).getPath()
                 + "/"
                 + blockId.getNamespace()
                 + "/"

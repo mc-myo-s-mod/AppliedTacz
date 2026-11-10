@@ -17,6 +17,7 @@ import appeng.blockentity.AEBaseBlockEntity;
 import appeng.menu.ISubMenu;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import com.tacz.guns.block.AbstractGunSmithTableBlock;
+import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
 import me.myogoo.appliedtacz.menu.AEGunSmithTableMenu;
 import me.myogoo.appliedtacz.registry.ModBlockEntities;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
@@ -34,6 +35,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +62,9 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
             .setInWorldNode(true)
             .setTagName("ae_node")
             .setVisualRepresentation(getBlockState().getBlock())
-            .setExposedOnSides(EnumSet.complementOf(EnumSet.of(Direction.UP)))
+            .setExposedOnSides(getBlockState().getBlock() instanceof MolecularAssemblerBlock assembler
+                    && assembler.partCount() == 1 ? EnumSet.allOf(Direction.class)
+                    : EnumSet.complementOf(EnumSet.of(Direction.UP)))
             .setIdlePowerUsage(1.0)
             .setFlags(GridFlags.REQUIRE_CHANNEL);
 
@@ -70,7 +74,11 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
     private boolean clientGridBooted;
 
     public AEGunSmithTableBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.AE_GUN_SMITH_TABLE.get(), pos, blockState);
+        this(ModBlockEntities.AE_GUN_SMITH_TABLE.get(), pos, blockState);
+    }
+
+    protected AEGunSmithTableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     public void setId(@Nullable ResourceLocation id) {
@@ -277,7 +285,9 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
     }
 
     private boolean canExposeNodeOnSide(@Nullable Direction dir) {
-        return dir != null && dir != Direction.UP && !isInternalMultiblockFace(dir);
+        boolean compact = getBlockState().getBlock() instanceof MolecularAssemblerBlock assembler
+                && assembler.partCount() == 1;
+        return dir != null && (dir != Direction.UP || compact) && !isInternalMultiblockFace(dir);
     }
 
     private boolean isInternalMultiblockFace(Direction dir) {
@@ -288,6 +298,9 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
         }
 
         BlockPos adjacentPos = getBlockPos().relative(dir);
+        if (!level.hasChunkAt(adjacentPos)) {
+            return false;
+        }
         BlockState adjacentState = level.getBlockState(adjacentPos);
         if (!(adjacentState.getBlock() instanceof AbstractGunSmithTableBlock adjacentTableBlock)) {
             return false;
@@ -315,6 +328,9 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
         }
 
         BlockPos rootPos = tableBlock.getRootPos(getBlockPos(), state);
+        if (!level.hasChunkAt(rootPos)) {
+            return null;
+        }
         BlockEntity blockEntity = level.getBlockEntity(rootPos);
         return blockEntity instanceof AEGunSmithTableBlockEntity table ? table : null;
     }

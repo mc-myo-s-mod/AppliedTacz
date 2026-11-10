@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["AAA", "ACA", "AAA"],
+  "key": {
+    "A": { "item": "appliedtacz:tacz_assembler_attachment" },
+    "C": { "item": "ae2:calculation_processor" }
+  },
+  "result": { "item": "appliedtacz:extended_tacz_assembler_attachment", "count": 1 }
+}

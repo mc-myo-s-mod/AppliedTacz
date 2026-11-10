@@ -1,5 +1,6 @@
 package me.myogoo.appliedtacz.client;
 
+import me.myogoo.appliedtacz.client.renderer.AssemblerWorkbenchBadge;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -23,6 +24,15 @@ public final class AETaCZItemDecorators {
         event.register(AETaCZBlock.GUN_SMITH_TABLE.get(), WORKBENCH_BADGE);
         event.register(AETaCZBlock.AMMO_ASSEMBLY_TABLE.get(), WORKBENCH_BADGE);
         event.register(AETaCZBlock.ATTACHMENT_TABLE.get(), WORKBENCH_BADGE);
+        event.register(AETaCZBlock.TACZ_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.TACZ_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.TACZ_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
     }
 
     private static final class InterfaceBadgeDecorator implements IItemDecorator {

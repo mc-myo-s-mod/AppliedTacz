@@ -1,0 +1,23 @@
+Applied Energistics 2 Molecular Assembler exterior and glass
+
+The outer frame, inset glass geometry and UV mapping in models/block/tacz_assembler.json
+are adapted from Applied Energistics 2's molecular_assembler.json (19.2.16).
+The perimeter beams are partitioned to retain AppliedTaCZ's existing inner
+frame without overlap. The inset center cube supplies the original glass.
+The online-only prismatic light overlay directly uses AE2's registered
+block/molecular_assembler_lights model and its animated texture at runtime.
+
+Source: https://github.com/AppliedEnergistics/Applied-Energistics-2
+Asset: src/main/resources/assets/ae2/models/block/molecular_assembler.json
+
+AE2's README credits its Textures and Models to:
+(c) 2020 Ridanisaurus Rid; (c) 2013-2020 AlgorithmX2 et al.
+Textures and Models license: Creative Commons Attribution-NonCommercial-
+ShareAlike 3.0 (CC BY-NC-SA 3.0).
+https://creativecommons.org/licenses/by-nc-sa/3.0/
+
+The adapted outer-frame and glass asset retains that license. This notice does not
+change the license of AppliedTaCZ's Java code.
+The outer texture is referenced as ae2:block/molecular_assembler and supplied
+by the installed AE2 version, not copied into the AppliedTaCZ game resources.
+The inner-frame geometry and atlas remain the original AppliedTaCZ assets.

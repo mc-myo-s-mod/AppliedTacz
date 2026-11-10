@@ -1,5 +1,6 @@
 package me.myogoo.appliedtacz.client;
 
+import me.myogoo.appliedtacz.client.renderer.AssemblerWorkbenchBadge;
 import me.myogoo.appliedtacz.registry.ModItems;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,6 +25,15 @@ public final class AETaCZItemDecorators {
         event.register(ModItems.GUN_SMITH_TABLE.get(), WORKBENCH_BADGE);
         event.register(ModItems.AMMO_WORKBENCH.get(), WORKBENCH_BADGE);
         event.register(ModItems.ATTACHMENT_TABLE.get(), WORKBENCH_BADGE);
+        event.register(ModItems.TACZ_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.TACZ_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.TACZ_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.EXTENDED_TACZ_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.EXTENDED_TACZ_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.MOLECULAR_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.MOLECULAR_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
+        event.register(ModItems.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
     }
 
     private static final class InterfaceBadgeDecorator implements IItemDecorator {

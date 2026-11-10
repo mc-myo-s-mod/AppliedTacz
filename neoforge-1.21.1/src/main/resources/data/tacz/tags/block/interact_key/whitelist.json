@@ -3,6 +3,18 @@
   "values": [
     "appliedtacz:ammo_workbench",
     "appliedtacz:gun_smith_table",
-    "appliedtacz:attachment_workbench"
+    "appliedtacz:attachment_workbench",
+    "appliedtacz:molecular_assembler_ammo",
+    "appliedtacz:molecular_assembler_attachment",
+    "appliedtacz:molecular_assembler_gun",
+    "appliedtacz:molecular_assembler_universal",
+    "appliedtacz:molecular_assembler",
+    "appliedtacz:tacz_assembler_ammo",
+    "appliedtacz:tacz_assembler_attachment",
+    "appliedtacz:tacz_assembler_gun",
+    "appliedtacz:tacz_assembler_universal",
+    "appliedtacz:extended_tacz_assembler_ammo",
+    "appliedtacz:extended_tacz_assembler_attachment",
+    "appliedtacz:extended_tacz_assembler_gun"
   ]
 }

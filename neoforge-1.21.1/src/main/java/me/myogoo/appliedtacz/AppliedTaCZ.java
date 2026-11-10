@@ -1,7 +1,12 @@
 package me.myogoo.appliedtacz;
 
 import appeng.api.AECapabilities;
+import appeng.api.upgrades.Upgrades;
+import appeng.core.definitions.AEItems;
+import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
+import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
 import me.myogoo.appliedtacz.client.AppliedTaczClient;
+import me.myogoo.appliedtacz.config.AppliedTaczClientConfig;
 import me.myogoo.appliedtacz.config.AppliedTaczServerConfig;
 import me.myogoo.appliedtacz.datagen.AppliedTaczDataGenerators;
 import me.myogoo.appliedtacz.network.AppliedTaczNetwork;
@@ -20,6 +25,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -35,6 +41,8 @@ public class AppliedTaCZ {
     public AppliedTaCZ(IEventBus modEventBus, ModContainer modContainer) {
         modContainer.registerConfig(ModConfig.Type.SERVER, AppliedTaczServerConfig.SPEC,
                 "appliedtacz-server.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, AppliedTaczClientConfig.SPEC,
+                "appliedtacz-client.toml");
 
         ModBlocks.BLOCKS.register(modEventBus);
         ModItems.ITEMS.register(modEventBus);
@@ -43,6 +51,7 @@ public class AppliedTaCZ {
 
         modEventBus.addListener(this::addCreativeTabItems);
         modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(AppliedTaczNetwork::init);
         modEventBus.addListener(AppliedTaczDataGenerators::gatherData);
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -58,7 +67,22 @@ public class AppliedTaCZ {
         }
     }
 
+    private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> ModBlocks.BLOCKS.getEntries().forEach(entry -> {
+            if (entry.get() instanceof MolecularAssemblerBlock block) {
+                Upgrades.add(AEItems.SPEED_CARD, block, AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS);
+            }
+        }));
+    }
+
     private static void addWorkbenchItems(BuildCreativeModeTabContentsEvent event) {
+        event.accept(ModItems.TACZ_PATTERN_ENCODING_TERMINAL.get());
+        event.accept(ModItems.TACZ_ASSEMBLER_AMMO.get());
+        event.accept(ModItems.TACZ_ASSEMBLER_ATTACHMENT.get());
+        event.accept(ModItems.TACZ_ASSEMBLER_GUN.get());
+        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_AMMO.get());
+        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get());
+        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_GUN.get());
         var entries = AETaCZWorkbenchIndex.entries();
         if (entries.isEmpty()) {
             event.accept(ModItems.GUN_SMITH_TABLE.get());
@@ -74,6 +98,16 @@ public class AppliedTaCZ {
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.AE_GUN_SMITH_TABLE.get(),
                 (blockEntity, context) -> blockEntity
+        );
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                ModBlockEntities.AE_MOLECULAR_ASSEMBLER.get(),
+                (blockEntity, context) -> blockEntity
+        );
+        event.registerBlockEntity(
+                AECapabilities.CRAFTING_MACHINE,
+                ModBlockEntities.AE_MOLECULAR_ASSEMBLER.get(),
+                (blockEntity, context) -> blockEntity.getCraftingMachine(context)
         );
     }
 }

@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "ae2:pattern_encoding_terminal" },
+    { "item": "tacz:gun_smith_table" }
+  ],
+  "result": {
+    "item": "appliedtacz:tacz_pattern_encoding_terminal",
+    "count": 1
+  }
+}

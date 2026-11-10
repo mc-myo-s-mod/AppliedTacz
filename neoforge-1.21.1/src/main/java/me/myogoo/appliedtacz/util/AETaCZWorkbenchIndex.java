@@ -4,6 +4,7 @@ import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.resource.index.CommonBlockIndex;
+import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
 import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import net.minecraft.resources.ResourceLocation;
@@ -47,11 +48,21 @@ public final class AETaCZWorkbenchIndex {
         if (kind == null) {
             return DefaultAssets.EMPTY_BLOCK_ID;
         }
+        if (appliedWorkbench instanceof MolecularAssemblerBlock) {
+            return kind.defaultBlockId();
+        }
         return entries().stream()
                 .filter(entry -> entry.kind() == kind)
                 .map(Entry::blockId)
                 .findFirst()
                 .orElse(kind.defaultBlockId());
+    }
+
+    public static Optional<WorkbenchUpgradeKind> getKind(ResourceLocation blockId) {
+        return entries().stream()
+                .filter(entry -> entry.blockId().equals(blockId))
+                .map(Entry::kind)
+                .findFirst();
     }
 
     private static Optional<Entry> createEntry(Map.Entry<ResourceLocation, CommonBlockIndex> commonEntry) {
@@ -67,6 +78,15 @@ public final class AETaCZWorkbenchIndex {
     public record Entry(ResourceLocation blockId, BlockItem baseWorkbench, WorkbenchUpgradeKind kind) {
         public ItemStack createAppliedStack() {
             return BlockItemBuilder.create(kind.result())
+                    .setId(blockId)
+                    .build();
+        }
+
+        public ItemStack createAssemblerStack() {
+            if (WorkbenchUpgradeKind.forAssembler(blockId) == null) {
+                return new ItemStack(WorkbenchUpgradeKind.assemblerBlockFor(blockId));
+            }
+            return BlockItemBuilder.create(WorkbenchUpgradeKind.assemblerBlockFor(blockId))
                     .setId(blockId)
                     .build();
         }

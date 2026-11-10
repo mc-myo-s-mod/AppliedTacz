@@ -3,6 +3,8 @@ package me.myogoo.appliedtacz.compat.jade;
 import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import me.myogoo.appliedtacz.AppliedTaCZ;
 import me.myogoo.appliedtacz.block.blcokentity.AEGunSmithTableBlockEntity;
+import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
+import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
 import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
@@ -13,6 +15,8 @@ public final class AppliedTaczJadePlugin implements IWailaPlugin {
     @Override
     public void register(IWailaCommonRegistration registration) {
         registration.registerBlockDataProvider(AppliedTaczJadeProvider.INSTANCE, AEGunSmithTableBlockEntity.class);
+        registration.registerBlockDataProvider(AppliedTaczJadeProvider.INSTANCE, AEMolecularAssemblerBlockEntity.class);
+        registration.registerBlockDataProvider(AssemblerJadeProvider.INSTANCE, AEMolecularAssemblerBlockEntity.class);
     }
 
     @Override
@@ -21,5 +25,7 @@ public final class AppliedTaczJadePlugin implements IWailaPlugin {
         // register the same config again on Jade 1.20.1, otherwise Jade aborts loading
         // this plugin with "Duplicate config key: ae2:grid_node_state".
         registration.registerBlockComponent(AppliedTaczJadeProvider.INSTANCE, AbstractGunSmithTableBlock.class);
+        registration.registerBlockComponent(AppliedTaczJadeProvider.INSTANCE, MolecularAssemblerBlock.class);
+        registration.registerBlockComponent(AssemblerJadeProvider.INSTANCE, MolecularAssemblerBlock.class);
     }
 }

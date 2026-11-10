@@ -1,0 +1,803 @@
+{
+  "textures": {
+    "particle": "ae2:block/crafting/unit",
+    "body": "ae2:block/crafting/unit",
+    "frame": "ae2:block/crafting/unit_base",
+    "metal": "ae2:block/crafting/unit",
+    "steel": "ae2:block/molecular_assembler",
+    "dark": "minecraft:block/black_concrete",
+    "belt": "ae2:block/crafting/unit_base",
+    "copper": "minecraft:block/orange_terracotta",
+    "brass": "minecraft:block/gold_block",
+    "cyan": "minecraft:block/light_blue_concrete",
+    "light": "ae2:block/fluix_block",
+    "port": "ae2:block/interface",
+    "display": "ae2:block/interface"
+  },
+  "elements": [
+    {
+      "name": "Universal gantry column",
+      "from": [
+        1.5,
+        0,
+        3
+      ],
+      "to": [
+        3.5,
+        10,
+        5
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            1,
+            2,
+            2
+          ],
+          "texture": "#frame"
+        },
+        "up": {
+          "uv": [
+            1,
+            1,
+            2,
+            2
+          ],
+          "texture": "#frame"
+        },
+        "north": {
+          "uv": [
+            1.4285714285714286,
+            1,
+            1.5714285714285714,
+            1.7142857142857142
+          ],
+          "texture": "#frame"
+        },
+        "south": {
+          "uv": [
+            1.4285714285714286,
+            1,
+            1.5714285714285714,
+            1.7142857142857142
+          ],
+          "texture": "#frame"
+        },
+        "west": {
+          "uv": [
+            1.4285714285714286,
+            1,
+            1.5714285714285714,
+            1.7142857142857142
+          ],
+          "texture": "#frame"
+        },
+        "east": {
+          "uv": [
+            1.4285714285714286,
+            1,
+            1.5714285714285714,
+            1.7142857142857142
+          ],
+          "texture": "#frame"
+        }
+      }
+    },
+    {
+      "name": "Column highlight",
+      "from": [
+        2.15,
+        0,
+        2.8
+      ],
+      "to": [
+        2.85,
+        9,
+        3
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            7.857142857142857,
+            2,
+            8.142857142857142
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.857142857142857,
+            2,
+            8.142857142857142
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.15,
+            2,
+            1.85,
+            11
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1.15,
+            2,
+            1.85,
+            11
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1.4,
+            2,
+            1.6,
+            11
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.4,
+            2,
+            1.6,
+            11
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Universal longitudinal rail",
+      "from": [
+        1.5,
+        9,
+        3
+      ],
+      "to": [
+        3.5,
+        10.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1.0555555555555556,
+            8.222222222222221,
+            1.9444444444444444,
+            14
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1.0555555555555556,
+            2,
+            1.9444444444444444,
+            7.777777777777778
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1,
+            7.625,
+            2,
+            8.375
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            7.625,
+            2,
+            8.375
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            7.972222222222222,
+            1.4814814814814814,
+            8.027777777777779
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.5185185185185186,
+            7.972222222222222,
+            2,
+            8.027777777777779
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Universal cross rail",
+      "from": [
+        3.5,
+        9,
+        7
+      ],
+      "to": [
+        16,
+        10.5,
+        9
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            7.96,
+            1.5,
+            8.04
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.96,
+            1.5,
+            8.04
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.5,
+            7.97,
+            2,
+            8.03
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            7.97,
+            1.5,
+            8.03
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            7.625,
+            2,
+            8.375
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1,
+            7.625,
+            2,
+            8.375
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Universal tool slide",
+      "from": [
+        15,
+        9,
+        7
+      ],
+      "to": [
+        16,
+        10.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            4.447368421052632,
+            4.526315789473684,
+            4.5,
+            5
+          ],
+          "texture": "#metal"
+        },
+        "up": {
+          "uv": [
+            4.447368421052632,
+            4,
+            4.5,
+            4.473684210526316
+          ],
+          "texture": "#metal"
+        },
+        "north": {
+          "uv": [
+            4.5,
+            4.125,
+            5,
+            4.875
+          ],
+          "texture": "#metal"
+        },
+        "south": {
+          "uv": [
+            4,
+            4.125,
+            4.5,
+            4.875
+          ],
+          "texture": "#metal"
+        },
+        "west": {
+          "uv": [
+            4,
+            4.4605263157894735,
+            4.473684210526316,
+            4.539473684210526
+          ],
+          "texture": "#metal"
+        },
+        "east": {
+          "uv": [
+            4.526315789473684,
+            4.4605263157894735,
+            5,
+            4.539473684210526
+          ],
+          "texture": "#metal"
+        }
+      }
+    },
+    {
+      "name": "Fluix assembly core",
+      "from": [
+        14.65,
+        7.600000000000001,
+        14.65
+      ],
+      "to": [
+        16,
+        11.399999999999999,
+        16
+      ],
+      "shade": false,
+      "faces": {
+        "down": {
+          "uv": [
+            3,
+            8.000000000000004,
+            7.999999999999997,
+            13
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "up": {
+          "uv": [
+            3,
+            3,
+            7.999999999999997,
+            7.999999999999997
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "north": {
+          "uv": [
+            8.000000000000002,
+            3,
+            11.552631578947373,
+            13
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "south": {
+          "uv": [
+            4.447368421052627,
+            3,
+            7.999999999999997,
+            13
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "west": {
+          "uv": [
+            4.447368421052627,
+            3,
+            7.999999999999997,
+            13
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        },
+        "east": {
+          "uv": [
+            8.000000000000002,
+            3,
+            11.552631578947373,
+            13
+          ],
+          "texture": "#light",
+          "forge_data": {
+            "block_light": 15,
+            "sky_light": 15
+          }
+        }
+      }
+    },
+    {
+      "name": "Core upper cap",
+      "from": [
+        14,
+        11.5,
+        14
+      ],
+      "to": [
+        16,
+        12,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            8,
+            1.5,
+            8.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.5,
+            1.5,
+            8
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.5,
+            7.9375,
+            2,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            7.9375,
+            1.5,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            7.9375,
+            1.5,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.5,
+            7.9375,
+            2,
+            8.0625
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Core lower cap",
+      "from": [
+        14,
+        7,
+        14
+      ],
+      "to": [
+        16,
+        7.5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            8,
+            1.5,
+            8.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.5,
+            1.5,
+            8
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.5,
+            7.9375,
+            2,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            7.9375,
+            1.5,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            7.9375,
+            1.5,
+            8.0625
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.5,
+            7.9375,
+            2,
+            8.0625
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Core cage post",
+      "from": [
+        14,
+        7.5,
+        14
+      ],
+      "to": [
+        14.6,
+        11.5,
+        14.6
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            7.5,
+            2,
+            8.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.5,
+            2,
+            8.5
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1,
+            4.666666666666664,
+            2,
+            11.333333333333336
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            4.666666666666664,
+            2,
+            11.333333333333336
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            4.666666666666664,
+            2,
+            11.333333333333336
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1,
+            4.666666666666664,
+            2,
+            11.333333333333336
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Spindle shaft",
+      "from": [
+        15.25,
+        5,
+        15.25
+      ],
+      "to": [
+        16,
+        7,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            1,
+            8,
+            1.5,
+            8.5
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            1,
+            7.5,
+            1.5,
+            8
+          ],
+          "texture": "#steel"
+        },
+        "north": {
+          "uv": [
+            1.5,
+            7.333333333333333,
+            2,
+            8.666666666666666
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            1,
+            7.333333333333333,
+            1.5,
+            8.666666666666666
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            1,
+            7.333333333333333,
+            1.5,
+            8.666666666666666
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            1.5,
+            7.333333333333333,
+            2,
+            8.666666666666666
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "name": "Tool tip",
+      "from": [
+        15.6,
+        4,
+        15.6
+      ],
+      "to": [
+        16,
+        5,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            7.999999999999983,
+            8.000000000000018,
+            16
+          ],
+          "texture": "#dark"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            8.000000000000018,
+            8.000000000000018
+          ],
+          "texture": "#dark"
+        },
+        "north": {
+          "uv": [
+            7.999999999999986,
+            0,
+            14.399999999999991,
+            16
+          ],
+          "texture": "#dark"
+        },
+        "south": {
+          "uv": [
+            1.6000000000000085,
+            0,
+            8.000000000000014,
+            16
+          ],
+          "texture": "#dark"
+        },
+        "west": {
+          "uv": [
+            1.6000000000000085,
+            0,
+            8.000000000000014,
+            16
+          ],
+          "texture": "#dark"
+        },
+        "east": {
+          "uv": [
+            7.999999999999986,
+            0,
+            14.399999999999991,
+            16
+          ],
+          "texture": "#dark"
+        }
+      }
+    }
+  ]
+}

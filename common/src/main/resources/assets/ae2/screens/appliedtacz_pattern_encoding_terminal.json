@@ -1,0 +1,38 @@
+{
+  "includes": ["terminals/terminal.json"],
+  "terminalStyle": {
+    "slotsPerRow": 13,
+    "header": {"texture": "guis/terminal.png", "srcRect": [0, 0, 195, 26]},
+    "bottom": {"texture": "guis/terminal.png", "srcRect": [0, 0, 195, 178]}
+  },
+  "slots": {
+    "PROCESSING_INPUTS": {"left": 157, "bottom": 161, "grid": "BREAK_AFTER_3COLS"},
+    "BLANK_PATTERN": {"left": 245, "bottom": 161},
+    "ENCODED_PATTERN": {"left": 245, "bottom": 125},
+    "PLAYER_INVENTORY": {"left": 55, "bottom": 84, "grid": "BREAK_AFTER_9COLS"},
+    "PLAYER_HOTBAR": {"left": 55, "bottom": 26, "grid": "HORIZONTAL"}
+  },
+  "text": {
+    "dialog_title": {"position": {"left": 8, "top": 7}, "scale": 0.7, "maxWidth": 172},
+    "recipes": {"text": {"translate": "gui.appliedtacz.pattern_terminal.recipes"}, "position": {"left": 8, "bottom": 175}},
+    "ingredients": {"text": {"translate": "gui.appliedtacz.pattern_terminal.ingredients"}, "position": {"left": 156, "bottom": 175}},
+    "recipePage": {"position": {"left": 8, "bottom": 107}, "scale": 0.7},
+    "encodingStatus": {"position": {"left": 156, "bottom": 107}, "scale": 0.6, "maxWidth": 180},
+    "player_inventory_title": {"position": {"left": 55, "bottom": 95}},
+    "entriesShown": {"position": {"right": 30, "top": 10}}
+  },
+  "widgets": {
+    "scrollbar": {"left": 250, "top": 27},
+    "craftingStatus": {"left": 246, "top": -5, "hideEdge": false, "width": 20, "height": 20},
+    "search": {"left": 136, "top": 7, "width": 106, "height": 12},
+    "recipe0": {"left": 8, "bottom": 162, "width": 124, "height": 18},
+    "recipe1": {"left": 8, "bottom": 144, "width": 124, "height": 18},
+    "recipe2": {"left": 8, "bottom": 126, "width": 124, "height": 18},
+    "recipesScroll": {"left": 138, "bottom": 162, "height": 54},
+    "ingredientsScroll": {"left": 216, "bottom": 162, "height": 54},
+    "recipesWheel": {"left": 8, "bottom": 162, "width": 138, "height": 54},
+    "ingredientsWheel": {"left": 156, "bottom": 162, "width": 68, "height": 54},
+    "workbenches": {"left": 270, "bottom": 175, "width": 22, "height": 80},
+    "encodePattern": {"left": 244, "bottom": 144}
+  }
+}

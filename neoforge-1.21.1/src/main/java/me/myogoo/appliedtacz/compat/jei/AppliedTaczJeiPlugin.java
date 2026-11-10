@@ -1,6 +1,7 @@
 package me.myogoo.appliedtacz.compat.jei;
 
 import com.tacz.guns.GunMod;
+import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IBlock;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
 import me.myogoo.appliedtacz.AppliedTaCZ;
@@ -13,6 +14,7 @@ import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -33,6 +35,19 @@ public class AppliedTaczJeiPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         for (var entry : AETaCZWorkbenchIndex.entries()) {
             registration.addRecipeCatalyst(entry.createAppliedStack(), recipeType(entry.blockId()));
+        }
+        for (var entry : TimelessAPI.getAllCommonBlockIndex()) {
+            registration.addRecipeCatalyst(new ItemStack(ModItems.TACZ_PATTERN_ENCODING_TERMINAL.get()),
+                    recipeType(entry.getKey()));
+        }
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        for (var entry : TimelessAPI.getAllCommonBlockIndex()) {
+            var type = recipeType(entry.getKey());
+            registration.addRecipeTransferHandler(
+                    new TaCZPatternTransferHandler(entry.getKey(), type, registration.getTransferHelper()), type);
         }
     }
 

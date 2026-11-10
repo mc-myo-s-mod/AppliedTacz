@@ -48,6 +48,7 @@ def modProjects = [
 modProjects.each { modProject ->
     def commonJavaSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/java')
     def commonResourcesSourceDir = rootProject.layout.projectDirectory.dir('common/src/main/resources')
+    def loaderResourceDirs = [modProject.file('src/main/resources'), modProject.file('src/generated/resources')]
     def generatedCommonJavaDir = modProject.layout.buildDirectory.dir('generated/sources/appliedTaCZCommon/java')
     def generatedCommonResourcesDir = modProject.layout.buildDirectory.dir('generated/resources/appliedTaCZCommon')
 
@@ -59,11 +60,23 @@ modProjects.each { modProject ->
     def syncCommonResources = modProject.tasks.register('syncAppliedTaCZCommonResources', Sync) {
         from commonResourcesSourceDir
         into generatedCommonResourcesDir
+        inputs.files(loaderResourceDirs.collect { modProject.fileTree(it) })
+                .withPropertyName('loaderResourceOverrides').withPathSensitivity(PathSensitivity.RELATIVE)
+        exclude { details ->
+            !details.directory && loaderResourceDirs.any { new File(it, details.relativePath.pathString).isFile() }
+        }
+        if (modProject.name == 'neoforge-1.21.1') {
+            filteringCharset = 'UTF-8'
+            filesMatching('assets/appliedtacz/models/**/molecular_assembler_*.json') {
+                filter { line -> line.replace('"forge_data":', '"neoforge_data":') }
+            }
+        }
     }
 
     modProject.plugins.withId('java') {
         modProject.sourceSets.main.java.srcDir(generatedCommonJavaDir)
         modProject.sourceSets.main.resources.srcDir(generatedCommonResourcesDir)
+        modProject.sourceSets.main.resources.srcDir(modProject.file('src/generated/resources'))
 
         modProject.tasks.named('compileJava').configure {
             dependsOn syncCommonJava

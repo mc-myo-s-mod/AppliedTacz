@@ -169,7 +169,7 @@ dependencies {
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${JEI_version}")
     implementation fg.deobf("curse.maven:jade-324717:6855440")
 
-    implementation fg.deobf("curse.maven:timeless-and-classics-zero-1028108:7278003")
+    implementation fg.deobf("maven.modrinth:timeless-and-classics-zero:QGCbNkTy")
 
     implementation fg.deobf("appeng:appliedenergistics2-forge:${AE2_version}")
     runtimeOnly fg.deobf("appeng:appliedenergistics2-forge:${AE2_version}")

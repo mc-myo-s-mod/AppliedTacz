@@ -1,0 +1,2456 @@
+{
+  "credit": "AE2 Molecular Assembler exterior and glass (CC BY-NC-SA 3.0); original AppliedTaCZ inner frame. See AE2_ASSET_NOTICE.txt",
+  "parent": "minecraft:block/block",
+  "render_type": "cutout",
+  "textures": {
+    "particle": "ae2:block/molecular_assembler",
+    "atlas": "appliedtacz:block/tacz_assembler",
+    "ae2frame": "ae2:block/molecular_assembler"
+  },
+  "elements": [
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        1,
+        1
+      ],
+      "to": [
+        2,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        1,
+        1
+      ],
+      "to": [
+        15,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        1,
+        1
+      ],
+      "to": [
+        14,
+        2,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        1,
+        14
+      ],
+      "to": [
+        14,
+        2,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        14,
+        1
+      ],
+      "to": [
+        2,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        14,
+        1
+      ],
+      "to": [
+        15,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        14,
+        1
+      ],
+      "to": [
+        14,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            0.5,
+            15,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        2,
+        14,
+        14
+      ],
+      "to": [
+        14,
+        15,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            9,
+            7,
+            15,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        2,
+        1
+      ],
+      "to": [
+        2,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            0.5,
+            9,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        1,
+        2,
+        14
+      ],
+      "to": [
+        2,
+        14,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            7,
+            9,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        2,
+        1
+      ],
+      "to": [
+        15,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            8.5,
+            1,
+            9,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            0.5,
+            15.5,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "Inner frame beam",
+      "from": [
+        14,
+        2,
+        14
+      ],
+      "to": [
+        15,
+        14,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            1,
+            15.5,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        },
+        "down": {
+          "texture": "#atlas",
+          "uv": [
+            15,
+            7,
+            15.5,
+            7.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            14,
+            16,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            0,
+            14,
+            1,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            0,
+            14,
+            16,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            15,
+            16,
+            14
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            16,
+            15,
+            0,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        0,
+        0
+      ],
+      "to": [
+        2,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            15,
+            15,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            16,
+            15,
+            0,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            1,
+            15,
+            2,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "down": {
+          "uv": [
+            16,
+            14,
+            0,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        1,
+        0
+      ],
+      "to": [
+        2,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            14,
+            15,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            1,
+            16,
+            0,
+            15
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            0,
+            16,
+            1,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        1,
+        15
+      ],
+      "to": [
+        2,
+        2,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            16,
+            16,
+            15,
+            15
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            1,
+            14,
+            2,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            15,
+            16,
+            16,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14,
+            1,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            16,
+            14,
+            0,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            15,
+            14,
+            16,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            0,
+            14,
+            16,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            16,
+            16,
+            0,
+            15
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        0,
+        0
+      ],
+      "to": [
+        15,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            15,
+            2,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            14,
+            15,
+            15,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            0,
+            15,
+            16,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            16,
+            15,
+            0,
+            14
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        1,
+        0
+      ],
+      "to": [
+        15,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            14,
+            2,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "west": {
+          "uv": [
+            0,
+            16,
+            1,
+            15
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            0,
+            15,
+            1,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        1,
+        15
+      ],
+      "to": [
+        15,
+        2,
+        16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            14,
+            14,
+            15,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            15,
+            16,
+            16,
+            15
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            15,
+            15,
+            16,
+            16
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        0,
+        0
+      ],
+      "to": [
+        14,
+        1,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            15,
+            14,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            14,
+            15,
+            2,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            14,
+            14,
+            2,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        1,
+        0
+      ],
+      "to": [
+        14,
+        2,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            14,
+            14,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "up": {
+          "uv": [
+            14,
+            14,
+            2,
+            15
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        15,
+        0
+      ],
+      "to": [
+        14,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            14,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            14,
+            2,
+            2,
+            1
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            14,
+            0,
+            2,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        14,
+        0
+      ],
+      "to": [
+        14,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            1,
+            14,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "down": {
+          "uv": [
+            14,
+            1,
+            2,
+            2
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        15,
+        14
+      ],
+      "to": [
+        14,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            14,
+            1
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            14,
+            0,
+            2,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            14,
+            2,
+            2,
+            0
+          ],
+          "texture": "#ae2frame",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        14,
+        15
+      ],
+      "to": [
+        14,
+        15,
+        16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            14,
+            1,
+            2,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "down": {
+          "uv": [
+            14,
+            2,
+            2,
+            1
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        0,
+        14
+      ],
+      "to": [
+        14,
+        1,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            15,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            14,
+            15,
+            2,
+            16
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "down": {
+          "uv": [
+            14,
+            16,
+            2,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        2,
+        1,
+        15
+      ],
+      "to": [
+        14,
+        2,
+        16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            14,
+            14,
+            2,
+            15
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            14,
+            15,
+            2,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            16,
+            0,
+            0,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            15,
+            0,
+            16,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            16,
+            2,
+            0,
+            1
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        15,
+        0
+      ],
+      "to": [
+        15,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            0,
+            2,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            14,
+            0,
+            15,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            0,
+            2,
+            16,
+            1
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            0,
+            1,
+            16,
+            2
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        14,
+        0
+      ],
+      "to": [
+        15,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            1,
+            2,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "west": {
+          "uv": [
+            0,
+            1,
+            1,
+            0
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            1,
+            1,
+            0,
+            0
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        14,
+        15
+      ],
+      "to": [
+        15,
+        15,
+        16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            14,
+            1,
+            15,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            15,
+            1,
+            16,
+            0
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            16,
+            1,
+            15,
+            0
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        1,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            0,
+            0,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            16,
+            0,
+            15,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "west"
+        },
+        "up": {
+          "uv": [
+            0,
+            1,
+            16,
+            0
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "up"
+        },
+        "down": {
+          "uv": [
+            16,
+            1,
+            0,
+            2
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        15,
+        0
+      ],
+      "to": [
+        2,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            0,
+            1,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            16,
+            2,
+            0,
+            1
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            15,
+            0,
+            14,
+            1
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "up": {
+          "uv": [
+            0,
+            2,
+            16,
+            1
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        14,
+        0
+      ],
+      "to": [
+        2,
+        15,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            1,
+            1,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            1,
+            1,
+            0,
+            0
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        14,
+        15
+      ],
+      "to": [
+        2,
+        15,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            16,
+            1,
+            15,
+            0
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            15,
+            1,
+            14,
+            2
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "down": {
+          "uv": [
+            16,
+            0,
+            15,
+            1
+          ],
+          "rotation": 90,
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        1,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "west": {
+          "uv": [
+            16,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "west"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        2,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            15,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        2,
+        14
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "east": {
+          "uv": [
+            16,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            15,
+            2,
+            16,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        2,
+        15
+      ],
+      "to": [
+        15,
+        14,
+        16
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            14,
+            2,
+            15,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            15,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        15,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        2
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            0,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "east"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        14,
+        2,
+        0
+      ],
+      "to": [
+        15,
+        14,
+        1
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "north"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            1,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        0,
+        2,
+        14
+      ],
+      "to": [
+        1,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            0,
+            2,
+            1,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            0,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "west"
+        }
+      }
+    },
+    {
+      "name": "Outer frame beam",
+      "from": [
+        1,
+        2,
+        15
+      ],
+      "to": [
+        2,
+        14,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            2,
+            2,
+            1,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            1,
+            2,
+            2,
+            14
+          ],
+          "texture": "#ae2frame",
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        2,
+        2
+      ],
+      "to": [
+        14,
+        14,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#ae2frame"
+        }
+      },
+      "name": "AE2 glass"
+    }
+  ],
+  "display": {
+    "gui": {
+      "rotation": [
+        30,
+        225,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.625,
+        0.625,
+        0.625
+      ]
+    },
+    "ground": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        3,
+        0
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "fixed": {
+      "rotation": [
+        0,
+        180,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        2.5,
+        0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    }
+  }
+}

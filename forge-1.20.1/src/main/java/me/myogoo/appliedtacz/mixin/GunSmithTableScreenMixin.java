@@ -23,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.crafting.Recipe;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -69,18 +68,6 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
 
     @Shadow(remap = false)
     private GunSmithTableRecipe selectedRecipe;
-
-    @Shadow(remap = false)
-    private Map<ResourceLocation, List<ResourceLocation>> recipes;
-
-    @Shadow(remap = false)
-    private ResourceLocation selectedType;
-
-    @Shadow(remap = false)
-    private List<ResourceLocation> selectedRecipeList;
-
-    @Shadow(remap = false)
-    private int indexPage;
 
     /**
      * Which recipe we have registered with the server as "currently watching".
@@ -157,95 +144,23 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
             method = "init",
             at = @At(
                     value = "INVOKE",
-                    target = "Lcom/tacz/guns/client/gui/GunSmithTableScreen;classifyRecipes()V",
-                    shift = At.Shift.AFTER,
+                    target = "Lcom/tacz/guns/client/gui/GunSmithTableScreen;applyRequestedRecipeSelection()V",
+                    shift = At.Shift.BEFORE,
                     remap = false),
             remap = true)
     private void appliedTacz$restorePendingRecipeSelection(CallbackInfo ci) {
+        if (!(this.menu instanceof AEGunSmithTableMenu aeMenu)) {
+            return;
+        }
+
         ResourceLocation recipeId = RecipeSelectionRestorer.getPendingRecipeId();
         if (recipeId == null || Minecraft.getInstance().level == null) {
             return;
         }
 
-        Recipe<?> foundRecipe = Minecraft.getInstance().level.getRecipeManager().byKey(recipeId).orElse(null);
-        if (!(foundRecipe instanceof GunSmithTableRecipe recipe)) {
-            RecipeSelectionRestorer.forget(recipeId);
-            return;
-        }
-
-        ResourceLocation group = appliedTacz$findRecipeGroup(recipeId, recipe);
-        List<ResourceLocation> recipeList = this.recipes.get(group);
-        if (group == null || recipeList == null) {
-            RecipeSelectionRestorer.forget(recipeId);
-            return;
-        }
-
-        int recipeIndex = recipeList.indexOf(recipeId);
-        if (recipeIndex < 0) {
-            RecipeSelectionRestorer.forget(recipeId);
-            return;
-        }
-
-        this.selectedType = group;
-        this.selectedRecipeList = recipeList;
-        this.indexPage = recipeIndex / 6;
-        this.selectedRecipe = recipe;
+        // TaCZ validates the table and clears user filters hiding the requested recipe.
+        aeMenu.requestRecipeSelection(recipeId);
         RecipeSelectionRestorer.forget(recipeId);
-        appliedTacz$refreshSelectedRecipeCounts(recipeId, recipe);
-    }
-
-    private @Nullable ResourceLocation appliedTacz$findRecipeGroup(ResourceLocation recipeId, GunSmithTableRecipe recipe) {
-        ResourceLocation recipeGroup = recipe.getResult().getGroup();
-        if (this.recipes.containsKey(recipeGroup)) {
-            return recipeGroup;
-        }
-
-        for (Map.Entry<ResourceLocation, List<ResourceLocation>> entry : this.recipes.entrySet()) {
-            if (entry.getValue().contains(recipeId)) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-
-    private void appliedTacz$refreshSelectedRecipeCounts(ResourceLocation recipeId, GunSmithTableRecipe recipe) {
-        if (this.menu instanceof AEGunSmithTableMenu aeMenu) {
-            this.appliedTacz$watchedRecipeId = recipeId;
-            AppliedTaczNetwork.sendToServer(new RequestIngredientCountsPacket(aeMenu.containerId, recipeId));
-            if (aeMenu.hasSyncedIngredientCounts(recipeId)) {
-                appliedTacz$applySyncedIngredientCounts(aeMenu, recipe);
-                return;
-            }
-        }
-
-        Int2IntArrayMap cached = this.appliedTacz$countsCache.get(recipeId);
-        if (cached != null) {
-            this.playerIngredientCount = new Int2IntArrayMap(cached);
-            return;
-        }
-
-        appliedTacz$applyPlayerInventoryIngredientCounts(recipe);
-    }
-
-    private void appliedTacz$applyPlayerInventoryIngredientCounts(GunSmithTableRecipe recipe) {
-        if (Minecraft.getInstance().player == null) {
-            this.playerIngredientCount = new Int2IntArrayMap();
-            return;
-        }
-
-        List<GunSmithTableIngredient> ingredients = recipe.getInputs();
-        Inventory inventory = Minecraft.getInstance().player.getInventory();
-        this.playerIngredientCount = new Int2IntArrayMap(ingredients.size());
-        for (int i = 0; i < ingredients.size(); i++) {
-            GunSmithTableIngredient ingredient = ingredients.get(i);
-            int count = 0;
-            for (ItemStack stack : inventory.items) {
-                if (!stack.isEmpty() && ingredient.getIngredient().test(stack)) {
-                    count += stack.getCount();
-                }
-            }
-            this.playerIngredientCount.put(i, count);
-        }
     }
 
     /**
