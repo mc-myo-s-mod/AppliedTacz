@@ -104,12 +104,6 @@
     }
   },
   "widgets": {
-    "search": {
-      "left": 100,
-      "top": 4,
-      "width": 69,
-      "height": 12
-    },
     "recipe0": {
       "left": 10,
       "bottom": 160,

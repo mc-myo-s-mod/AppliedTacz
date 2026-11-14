@@ -51,7 +51,6 @@
     "player_inventory_title": {"text": {"translate": "container.inventory"}, "position": {"left": 5, "bottom": 93}}
   },
   "widgets": {
-    "search": {"left": 100, "top": 4, "width": 69, "height": 12},
     "recipe0": {"left": 8, "bottom": 155, "width": 102, "height": 18},
     "recipe1": {"left": 8, "bottom": 137, "width": 102, "height": 18},
     "recipe2": {"left": 8, "bottom": 119, "width": 102, "height": 18},

@@ -6,6 +6,7 @@
 - Added standalone Extended assemblers with eight concurrent crafting jobs and faster per-job processing.
 - Added a nine-slot assembler return inventory with manual and Shift-click insertion into ME storage, persistent buffered outputs, and automatic retry when storage becomes available.
 - Added the TaCZ Pattern Encoding Terminal with workbench tabs, recipe selection, JEI transfer, and encoded-pattern restoration.
+- Matched the pattern terminal search field width to AE2's crafting terminal on both Minecraft versions.
 - Kept workbench tabs clear of AE2 view-cell panels and addon terminal upgrade panels.
 - Fixed JEI pattern transfers being hidden by a client-side menu validity check while retaining server-side permission and recipe validation.
 - Removed the old multi-block assemblers and their models. Existing large assemblers are not migrated; current single-block normal and Extended assemblers retain their saved data. Single-block universal variants remain available through commands only.
