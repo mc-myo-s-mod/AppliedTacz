@@ -44,6 +44,10 @@ public class ExportWorkbenchPreview implements VertexConsumer {
             Path texture = resource(pack, textureId, "textures", ".png");
             assert Files.isRegularFile(texture) : texture;
             var model = new BedrockModel(gson.fromJson(Files.readString(source), BedrockModelPOJO.class), BedrockVersion.NEW);
+            // This mesh stores geometry/UVs, not lighting; avoid TaCZ's live RenderSystem light accessor.
+            for (String bone : model.getIndexBones().keySet()) {
+                model.getNode(bone).illuminated = false;
+            }
             var bounds = AEMolecularAssemblerRenderer.measureWorkbench(model);
             assert bounds != null && bounds.getXsize() > 0 && bounds.getYsize() > 0 && bounds.getZsize() > 0;
             var poses = new PoseStack();
@@ -51,7 +55,8 @@ public class ExportWorkbenchPreview implements VertexConsumer {
             AEMolecularAssemblerRenderer.transformWorkbench(poses, bounds, 180, 0, true);
             var consumer = new ExportWorkbenchPreview(false);
             for (var part : model.getShouldRender()) {
-                part.render(poses, ItemDisplayContext.NONE, consumer, 0xf000f0, 0);
+                part.render(poses, ItemDisplayContext.NONE, consumer, 0xf000f0, 0,
+                        1, 1, 1, 1, renderType -> consumer);
             }
             assert !consumer.vertices.isEmpty() && consumer.vertices.size() % 4 == 0 : "quad stream";
             // TaCZ emits collapsed origin quads for missing per-face UVs; they draw no pixels.
@@ -73,7 +78,9 @@ public class ExportWorkbenchPreview implements VertexConsumer {
             System.out.println(name + ": " + consumer.vertices.size() / 4 + " real TaCZ textured quads");
         }
         var vfx = new ExportWorkbenchPreview(true);
-        AssemblerVfx.emit(new PoseStack(), vfx, 0, true, 1);
+        var activity = new AssemblerVfx.Activity();
+        activity.update(0, true);
+        AssemblerVfx.emit(new PoseStack(), vfx, 0, activity, 1);
         assert vfx.vertices.size() == 720 : "crafting VFX vertex budget";
         models.put("vfx", vfx.vertices);
         Files.writeString(Path.of(args[1]), gson.toJson(models));

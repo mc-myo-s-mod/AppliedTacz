@@ -9,6 +9,7 @@ import com.tacz.guns.client.model.bedrock.BedrockPart;
 import com.tacz.guns.client.resource.pojo.model.BedrockModelPOJO;
 import com.tacz.guns.client.resource.pojo.model.BedrockVersion;
 import com.tacz.guns.client.resource.pojo.model.CubesItem;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3f;
@@ -87,8 +88,12 @@ public class WorkbenchBoundsCheck {
             assert Math.abs(bottomRight.x - (origin[0] + 16)) < EPSILON
                     && Math.abs(bottomRight.y - (origin[1] + 16)) < EPSILON : bottomRight;
             assert Math.abs(bottomRight.z - topLeft.z) < EPSILON : "badge depth scale";
-            assert Math.abs(topLeft.z - (ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10)) < EPSILON
-                    && topLeft.z > ItemRenderer.ITEM_COUNT_BLIT_OFFSET : "badge must render above count plane";
+            // Both supported GuiGraphics implementations add 150 when rendering an item.
+            float itemDepth = topLeft.z + 150;
+            assert Math.abs(itemDepth - (ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10)) < EPSILON
+                    && itemDepth > ItemRenderer.ITEM_COUNT_BLIT_OFFSET : "badge must render above count plane";
+            assert AbstractContainerScreen.SLOT_ITEM_BLIT_OFFSET + itemDepth < 400
+                    : "nested slot badge must remain below tooltip plane";
             var inverse = new org.joml.Matrix4f(matrix).invert();
             inverse.transformPosition(bottomRight);
             assert Math.abs(bottomRight.x - 16) < EPSILON && Math.abs(bottomRight.y - 16) < EPSILON

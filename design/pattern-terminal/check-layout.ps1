@@ -4,9 +4,7 @@ Set-StrictMode -Version Latest
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $common = Join-Path $repo 'common'
 $screenPath = Join-Path $common 'src/main/java/me/myogoo/appliedtacz/client/TaCZPatternEncodingScreen.java'
-$stylePath = Join-Path $common 'src/main/resources/assets/ae2/screens/appliedtacz_pattern_encoding_terminal.json'
 $screenSource = Get-Content -Raw $screenPath
-$style = Get-Content -Raw $stylePath | ConvertFrom-Json
 $viewportWidth = 320
 $viewportHeight = 240
 
@@ -28,11 +26,74 @@ function Assert-Json([string] $path) {
     return $json
 }
 
-Assert-That ($style.terminalStyle.slotsPerRow -eq 13) 'Cached screen style must retain the 13-column wide default.'
+$styles = @{}
+$styleTexts = @{}
+foreach ($module in @('forge-1.20.1', 'neoforge-1.21.1')) {
+    $resourceRoot = Join-Path $repo "$module/src/main/resources/assets"
+    $stylePath = Join-Path $resourceRoot 'ae2/screens/appliedtacz_pattern_encoding_terminal.json'
+    $texturePath = Join-Path $resourceRoot 'appliedtacz/textures/guis/tacz_pattern_encoding_terminal.png'
+    $styleTexts[$module] = Read-Text $stylePath
+    $styles[$module] = $styleTexts[$module] | ConvertFrom-Json
+    Assert-That (Test-Path -LiteralPath $texturePath -PathType Leaf) `
+        "$module runtime GUI texture is missing: tacz_pattern_encoding_terminal."
+}
+$style = $styles['forge-1.20.1']
+
+$encoderTexture = 'appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png'
+foreach ($module in @('forge-1.20.1', 'neoforge-1.21.1')) {
+    $moduleStyle = $styles[$module]
+    Assert-That ($moduleStyle.terminalStyle.slotsPerRow -eq 9) `
+        "$module cached screen style must use the 9-column compact default."
+    foreach ($section in @('header', 'bottom')) {
+        $blitter = $moduleStyle.terminalStyle.$section
+        Assert-That ($blitter.texture -eq $encoderTexture -and $blitter.textureWidth -eq 512 `
+                -and $blitter.textureHeight -eq 256) "$module encoder $section must use the runtime GUI atlas."
+    }
+    Assert-That (($moduleStyle.terminalStyle.header.srcRect -join ',') -eq '0,0,272,26' `
+            -and ($moduleStyle.terminalStyle.bottom.srcRect -join ',') -eq '0,44,272,178') `
+        "$module encoder atlas slices must match the established header and footer."
+}
+$assemblerStyle = Assert-Json (Join-Path $common 'src/main/resources/assets/ae2/screens/appliedtacz_molecular_assembler.json')
+Assert-That (@($assemblerStyle.includes) -contains 'pattern_provider.json') `
+    'Assembler style must inherit the native AE2 PatternProvider layout and frame.'
+Assert-That ('background' -notin $assemblerStyle.PSObject.Properties.Name) `
+    'Assembler style must not override the inherited PatternProvider background.'
+Assert-That ($assemblerStyle.slots.MACHINE_OUTPUT.left -eq 8 -and $assemblerStyle.slots.MACHINE_OUTPUT.top -eq 97 `
+        -and 'UPGRADE' -notin $assemblerStyle.slots.PSObject.Properties.Name `
+        -and 'ENCODED_PATTERN' -notin $assemblerStyle.slots.PSObject.Properties.Name `
+        -and 'STORAGE' -notin $assemblerStyle.slots.PSObject.Properties.Name `
+        -and 'PLAYER_INVENTORY' -notin $assemblerStyle.slots.PSObject.Properties.Name `
+        -and 'PLAYER_HOTBAR' -notin $assemblerStyle.slots.PSObject.Properties.Name) `
+    'Assembler may override only the pending-output position; native pattern, storage, player, and upgrade layouts must remain inherited.'
+$assemblerText = if ('text' -in $assemblerStyle.PSObject.Properties.Name) { $assemblerStyle.text } else { $null }
+Assert-That ($null -eq $assemblerText -or 'upgrades' -notin $assemblerText.PSObject.Properties.Name) `
+    'Assembler upgrades must use AE2 native panel controls instead of an inline custom label.'
 Assert-That ($screenSource -match 'private static final int WIDTH\s*=\s*(\d+)\s*;') 'Screen width constant is missing.'
 $screenWidth = [int]$Matches[1]
 Assert-That ($screenWidth -gt 0 -and $screenWidth -le $viewportWidth) "Screen width does not fit a ${viewportWidth}px viewport: $screenWidth."
 Assert-That ($screenWidth -eq 272) 'Compact and wide modes must retain the same 272px overall screen width.'
+Assert-That ($screenSource -match '(?s)super\(menu,\s*inventory,\s*GuiText\.Terminal\.text\(\),\s*style\);\s*imageWidth\s*=\s*WIDTH;') `
+    'Pattern terminal must override AE2 style width with its fixed window width.'
+Assert-That ($screenSource -match 'terminalLayout\.setSlotsPerRow\(AppliedTaczClientConfig\.compactPatternTerminal\(\)\s*\?\s*9\s*:\s*13\)') `
+    'Pattern terminal must select only 9 or 13 repository columns without changing its window width.'
+$terminalMargin = 25
+$terminalRowHeight = 18
+$rowCases = @()
+foreach ($height in @(400, 640)) {
+    # Mirrors AE2 MEStorageScreen.init() with the default SMALL terminal row scale:
+    # max(2, floor((height - 2 * margin - header - bottom) / rowHeight) / 4).
+    $possibleRows = [int][Math]::Floor(($height - 2 * $terminalMargin - [int]$style.terminalStyle.header.srcRect[3] `
+            - [int]$style.terminalStyle.bottom.srcRect[3]) / $terminalRowHeight)
+    $rows = [Math]::Max(2, [int][Math]::Floor($possibleRows / 4))
+    $rowCases += [pscustomobject]@{ Height = $height; Rows = $rows }
+}
+Assert-That ($rowCases[0].Rows -lt $rowCases[1].Rows) `
+    'Adaptive ME row count must increase across the checked viewport heights.'
+foreach ($columns in @(9, 13)) {
+    Assert-That ($rowCases[0].Rows -eq 2 -and $rowCases[1].Rows -eq 5) `
+        "$columns-column mode must retain AE2 adaptive row counts at both checked viewport heights."
+    Assert-That ($screenWidth -eq 272) "$columns-column mode must retain the fixed 272px window width."
+}
 $minimumGridRows = 2
 $screenHeight = [int]$style.terminalStyle.header.srcRect[3] + 18 * $minimumGridRows + [int]$style.terminalStyle.bottom.srcRect[3]
 Assert-That ($screenHeight -gt 0 -and $screenHeight -le $viewportHeight) `
@@ -46,11 +107,16 @@ Assert-That ($screenSource -match '(?s)if \(!ItemStack\.matches\(pattern, displa
     'Output quantity decoding must be cached by pattern content, without changing the real slot stack.'
 Assert-That ($screenSource -match '(?s)if \(isQuickCrafting \|\| \(minecraft\.options\.touchscreen\(\)\.get\(\).*?isLeftPressed\(\).*?isRightPressed\(\).*?super\.renderSlot\(graphics, slot\);\s*return;') `
     'Encoded slot must preserve vanilla quick-craft and touchscreen pickup previews while dragging.'
-Assert-That ($screenSource -match 'super\(menu,\s*inventory,\s*title,\s*style\)' `
+Assert-That ($screenSource -match 'super\(menu,\s*inventory,\s*GuiText\.Terminal\.text\(\),\s*style\)' `
         -and $screenSource -match 'terminalLayout\s*=\s*getStyle\(\)\.getTerminalStyle\(\)') `
     'Terminal screen must use its dedicated cached style directly for the client-global column preference.'
+Assert-That ($screenSource -match 'float textScale\s*=\s*getStyle\(\)\.getText\(\)\.get\("workbench"\)\.getScale\(\)' `
+        -and $screenSource -match '\(int\)\s*\(\(width - 24\) / textScale\)' `
+        -and $screenSource -match '\(height - font\.lineHeight \* textScale\) / 2' `
+        -and $screenSource -match 'graphics\.pose\(\)\.scale\(textScale, textScale, 1\)') `
+    'Recipe labels must match the workbench header scale with scale-aware clipping and vertical centering.'
 Assert-That ($screenSource -match 'terminalLayout\.setSlotsPerRow\(AppliedTaczClientConfig\.compactPatternTerminal\(\)\s*\?\s*9\s*:\s*13\)') `
-    'Client compact-layout preference must choose 9 columns, with 13 columns as the default.'
+    'Client compact-layout preference must choose 9 columns, with 13 columns as the optional Wide mode.'
 Assert-That ($screenSource -match '(?s)public void init\(\)\s*\{\s*repo\.setRowSize\(terminalLayout\.getSlotsPerRow\(\)\);\s*repo\.updateView\(\);\s*super\.init\(\);') `
     'Screen initialization must update the repository row size before AE2 creates its ME slots.'
 Assert-That ($screenSource -match 'int offset\s*=\s*\(13\s*-\s*terminalLayout\.getSlotsPerRow\(\)\)\s*\*\s*9') `
@@ -195,7 +261,7 @@ Assert-That ($screenOffsetY + $screenHeight - [int]$tabs.bottom -ge 0 `
         -and $screenOffsetY + $screenHeight - [int]$tabs.bottom + [int]$tabs.height -le $viewportHeight) `
     'Workbench tabs extend beyond a 240px viewport.'
 
-$localizationSources = @($screenSource, (Read-Text $stylePath))
+$localizationSources = @($screenSource) + @($styleTexts.Values)
 $menuRelativePaths = @(
     'forge-1.20.1/src/main/java/me/myogoo/appliedtacz/menu/TaCZPatternEncodingMenu.java',
     'neoforge-1.21.1/src/main/java/me/myogoo/appliedtacz/menu/TaCZPatternEncodingMenu.java'
@@ -209,9 +275,10 @@ $locKeys = @($localizationSources | ForEach-Object {
 Assert-That ($locKeys.Count -gt 0) 'No terminal item or GUI localization keys were discovered.'
 
 $parentModels = @(
-    @{ Path = 'models/item/tacz_pattern_encoding_terminal.json'; Parent = 'ae2:item/pattern_encoding_terminal' },
-    @{ Path = 'models/part/tacz_pattern_encoding_terminal_off.json'; Parent = 'ae2:part/pattern_encoding_terminal_off' },
-    @{ Path = 'models/part/tacz_pattern_encoding_terminal_on.json'; Parent = 'ae2:part/pattern_encoding_terminal_on' }
+    @{ Path = 'models/item/tacz_pattern_encoding_terminal.json'; Parent = 'appliedtacz:part/tacz_pattern_encoding_terminal' },
+    @{ Path = 'models/part/tacz_pattern_encoding_terminal_off.json'; Parent = 'appliedtacz:part/tacz_pattern_encoding_terminal' },
+    @{ Path = 'models/part/tacz_pattern_encoding_terminal_on.json'; Parent = 'appliedtacz:part/tacz_pattern_encoding_terminal' },
+    @{ Path = 'models/part/tacz_pattern_encoding_terminal_has_channel.json'; Parent = 'appliedtacz:part/tacz_pattern_encoding_terminal' }
 )
 $recipePath = 'src/main/resources/data/appliedtacz/recipes/tacz_pattern_encoding_terminal.json'
 $loaders = @(
@@ -234,10 +301,10 @@ foreach ($loader in $loaders) {
     Assert-That ($clientSource -match 'TaCZPatternEncodingScreen' -and $clientSource -match 'TaCZPatternEncodingMenu\.TYPE' `
             -and $clientSource -match 'StyleManager\.loadStyleDoc\("/screens/appliedtacz_pattern_encoding_terminal\.json"\)') `
         "$($loader.Name): dedicated pattern terminal style or client screen registration is missing."
-    Assert-That ($clientConfig -match 'define\("compactLayout",\s*false\)' `
+    Assert-That ($clientConfig -match 'define\("compactLayout",\s*true\)' `
             -and $clientConfig -match 'compactPatternTerminal\(\)\s*\{\s*return COMPACT_LAYOUT\.get\(\);\s*\}' `
             -and $clientConfig -match '(?s)setCompactPatternTerminal\(boolean compact\)\s*\{\s*COMPACT_LAYOUT\.set\(compact\);\s*COMPACT_LAYOUT\.save\(\);') `
-        "$($loader.Name): compact mode must default to wide and persist the client preference."
+        "$($loader.Name): compact mode must default to 9 columns and persist the client preference."
     foreach ($model in $parentModels) {
         $modelJson = Assert-Json (Join-Path $loaderRoot "src/main/resources/assets/appliedtacz/$($model.Path)")
         Assert-That ($modelJson.parent -eq $model.Parent) "$($loader.Name): model $($model.Path) must inherit $($model.Parent)."

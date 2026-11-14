@@ -2,7 +2,10 @@
 
 ![공통 외곽 프레임 미리보기](preview.png)
 
-1×1×1 공통 모델 안에 바깥·안쪽 골조를 빈틈 없이 맞물리게 넣어 4종 어셈블러가 공유합니다.
+일반형 4종은 1×1×1 공통 모델 안에 바깥·안쪽 골조를 빈틈 없이 맞물리게 넣은 외형을 공유합니다.
+Extended형 3종은 ExtendedAE가 설치되어 있으면 해당 모드의 Molecular Assembler 모델·텍스처를 직접 참조합니다.
+별도의 ExtendedAE 이미지는 포함하지 않으며, 미설치 상태에서는 일반 TaCZ 어셈블러 외형을 사용합니다.
+외형만 선택적으로 연동되므로 ExtendedAE는 필수 의존성이 아닙니다.
 두 골조가 합쳐져 속이 찬 2픽셀 두께의 모서리 12개를 이루며, 사이에 틈이나 겹치는 부피가 없습니다.
 바깥 골조는 AE2 Molecular Assembler 원본 외곽의 좌표·UV를 가져왔고, 안쪽 흑연 골조는 기존 좌표·UV·픽셀을 유지합니다.
 `generate-models.mjs`는 AE2 19.2.16의 외곽 빔 12개에서 안쪽 골조 공간을 제외해 맞물리는 32개 조각으로 나눕니다.
@@ -29,7 +32,9 @@ TaCZ 원본 모델·텍스처 사본을 배포 리소스에 추가하지 않습�
 | 범용 (명령어 전용) | `appliedtacz:tacz_assembler_universal` | 지정 ID가 없으면 기본 총기 작업대 |
 
 전용 3종은 AE2 분자 조립기·패턴 공급기·원본 TaCZ 작업대를 하나씩 합치는 비정형 제작법을 사용합니다.
-범용과 구형 범용 별칭은 제작법·크리에이티브 탭·JEI/REI/EMI에서 숨깁니다. 블록 ID와 기존 월드는 유지합니다.
+범용과 단일 블록 범용 별칭 `molecular_assembler`는 제작법·크리에이티브 탭·JEI/REI/EMI에서 숨깁니다.
+현재 1×1 블록의 ID와 저장 데이터는 유지합니다. 예전 대형 `molecular_assembler_<종류>` 4종은 제거했으며
+자동 이전하지 않습니다. 기존 대형 조립기의 내용물은 업데이트 전에 회수해야 합니다.
 화면·아이템·Jade 이름은 `ME {TaCZ 작업대 번역명} Assembler` 형식이며, 한국어에서는 `ME … 조립기`로 표시합니다.
 원시 ID·반환 버퍼 설명·추가 호버 설명은 없애고, 실제 결과물 보관·자동 반환과 확인용 슬롯은 유지합니다.
 가속 카드 0~5개에 따라 일반형의 새 제작은 AE2와 같은 10/8/6/5/4/2 활성 서버 틱이 걸리며, 카드도 저장·파괴 드롭됩니다.
@@ -62,7 +67,8 @@ TaCZ 모델의 실제 큐브·본 변환으로 크기를 한 번 측정해 캐�
 
 `tacz_assembler.bbmodel`이 현재 게임 적용용 편집 모델이며 `Outer frame`·`Inner frame`·`AE2 glass` 그룹으로 나뉩니다. 게임용 모델은
 `common/src/main/resources/assets/appliedtacz/models/block/tacz_assembler.json` 하나이며,
-일반형 4종과 Extended형 3종의 블록 상태·아이템 모델은 모두 이 파일을 참조합니다. 내부 텍스처는
+일반형 4종의 블록 상태·아이템 모델이 이 파일을 참조합니다. Extended형 3종은 각 로더의
+`models/block/extended_tacz_assembler.json`을 참조합니다. 일반형 내부 텍스처는
 `common/src/main/resources/assets/appliedtacz/textures/block/tacz_assembler.png`, 외부 텍스처는 설치된 AE2가 제공합니다.
 Blockbench는 두 텍스처를 구분하며 외부 텍스처는 아래 로컬 AE2 소스의 실제 리소스 경로를 참조합니다.
 이전 종류별 외곽 모델·편집 파일·미리보기·외곽 아틀라스 사본은 제거했습니다.
@@ -91,7 +97,7 @@ node design/assemblers/compact/render-preview.mjs <node_modules> "$env:TEMP/appl
 ```
 
 생성기는 공통 모델·편집 파일·텍스처와 4개 블록의 참조 파일만 갱신합니다.
-구형 대형 설비의 모델·블록 ID·저장 데이터는 보존합니다. 검사 모드는 단일 블록 범위, 텍스처 UV,
+구형 대형 설비의 모델·블록 ID·다중 블록 동작은 제거했습니다. 검사 모드는 단일 블록 범위, 텍스처 UV,
 UUID, 속이 찬 골조의 빈틈·부피 겹침 여부·면별 재질과 유리를 제외한 6방향 개방부, 원본 유리 UV,
 생성 파일 일치 및 외곽 모델 파일이 정확히 하나인지 확인합니다.
 

@@ -1,24 +1,37 @@
 # TaCZ pattern terminal verification
 
-The shared screen/style is used by Forge 1.20.1 and NeoForge 1.21.1. The loader-specific
-parts, menus and JEI handlers use the matching AE2 and TaCZ APIs. No EMI integration is included.
+The shared screen code is used by Forge 1.20.1 and NeoForge 1.21.1, with independently
+editable GUI textures and styles in each loader module. The loader-specific parts,
+menus and recipe-viewer handlers use the matching AE2 and TaCZ APIs. JEI and optional EMI
+transfer into the encoder select the exact workbench and recipe without moving ingredients.
+Forge EMI uses the JEMI backing recipe; NeoForge TaCZ 1.2.0 has native EMI recipes and uses
+their selection recipe ID. EMI is compile-only, not required or bundled in the mod JAR.
 
 ## Automated checks
 
 From the repository root on Windows:
 
 ```powershell
-./design/pattern-terminal/check-layout.ps1
+./design/pattern-terminal/check-native-terminal.ps1
 cmd.exe /c "gradlew.bat :forge-1.20.1:compileJava :neoforge-1.21.1:compileJava --console=plain"
 cmd.exe /c "gradlew.bat :forge-1.20.1:runGameTestServer :neoforge-1.21.1:runGameTestServer --console=plain"
 cmd.exe /c "gradlew.bat :forge-1.20.1:runData :neoforge-1.21.1:runData --console=plain"
 cmd.exe /c "gradlew.bat :forge-1.20.1:build :neoforge-1.21.1:build --console=plain"
 ```
 
-The layout check verifies the 320 × 240 minimum viewport, three recipe rows, all 81 inputs
+The native-terminal check verifies AE2 part references, version-specific connected tab bounds
+for vertical lists of 0, 1, 3, 4, 8 and 16 workbenches, the 1 px left shift
+both beside the terminal and when relocated beside addon panels,
+the removed status field and retained encoding guards. It preserves the current hand-edited
+GUI styles and atlases. The older `check-layout.ps1` targets the original 272 px layout;
+its fixed coordinates are not a validator for the newer independently edited 198 px styles.
+
+The older layout check verifies the 320 × 240 minimum viewport, three recipe rows, all 81 inputs
 across 25 scrollbar positions, vertical pattern-slot alignment and both loaders' resource wiring.
 It does not render Minecraft or exercise mouse input.
 Both Wide (13 columns) and centered Compact (9 columns) keep the same 272 px frame and lower layout.
+Compact is the default for new client configurations; existing saved mode choices are preserved.
+The ME row count remains adaptive to the available GUI height, giving a 9 x N default repository.
 The checks also cover the persisted mode setting and same-screen resize path.
 The encoded-slot rendering check verifies the Shift-only output-count branch and cached pattern decoding;
 it is a source check, not an interactive rendering test.
@@ -49,10 +62,12 @@ but the interactive checklist below remains unverified. The standard `test` task
    the nine-column grid stays centered. Search, recipe selection, ingredient choices and real pattern
    slots must remain intact. Reopen/restart to verify the saved mode.
 3. Select and scroll recipes; select each workbench. With more than three gunpack workbenches,
-   check tab arrows/wheel and JEI transfer to an initially hidden workbench.
-   Scroll the current recipe and current workbench tab out of view, then transfer the same recipe again;
-   both must return into view. Transfer the same recipe from another eligible workbench category and
-   verify that exact source tab is selected.
+   verify that every native AE2 tab extends vertically below the preceding tab, without paging arrows
+   or wheel paging. Check the complete stack's hitboxes and JEI exclusion region; tabs naturally extend
+   below the terminal and are not resized to fit the viewport. Transfer to a workbench beyond the third tab.
+   Scroll the current recipe out of view, then transfer the same recipe again;
+   the recipe must return into view and the matching tab must remain selected. Transfer the same recipe
+   from another eligible workbench category and verify that exact source tab is selected.
 4. Use a recipe with more than nine ingredient entries. Scroll to the final entries, then reopen
    the screen: the grid must reset without shifting its layout. Click an ingredient with multiple
    accepted items and inspect its full amount tooltip.
@@ -72,6 +87,27 @@ but the interactive checklist below remains unverified. The standard `test` task
    the ME network. Check the output and quantities, then save/reload and repeat.
 
 ## GUI dummy image
+
+The [runtime GUI template and UV guide](../gui-textures/README.md) document the
+editable Forge 1.20.1 and NeoForge 1.21.1 PNG/style resources. Both versions begin
+with the same 512 x 256 atlas and layout, then can be edited independently. There
+are no baked text labels; after texture/style edits, reload with `F3+T` (a full
+client restart may be needed for AE2-cached style changes). The assembler settings
+reuse the installed AE2 version's Pattern Provider background and native upgrades
+side panel.
+The older [GUI dummy set](../gui-dummies/README.md) contains design references only.
+
+## Native AE2 terminal part
+
+The terminal follows ExtendedTerminal's selective-reuse pattern. AE2 supplies the
+frame, status indicators, screen geometry and item display model at runtime. Each
+loader keeps only two local OFF/ON part-model wrappers and three editable screen PNGs
+in `src/main/resources/assets/appliedtacz/models/part` and `textures/part`. The item
+wrapper inherits AE2's display base and binds the same screen layers. These are real
+runtime resources: edit them and rebuild, or test them in a resource pack with `F3+T`.
+See the [runtime asset guide](part/native-ae2/README.md) for the exact files.
+The old independently designed [Blockbench part files](part/README.md) remain
+design references and must not be exported over these native-style copies.
 
 [wide-compact-mockup.png](wide-compact-mockup.png) is an imagegen-created layout illustration, not a
 captured game screen or a GUI texture. Its generation prompt is in [mockup-prompt.md](mockup-prompt.md).

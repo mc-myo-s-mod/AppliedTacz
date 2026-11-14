@@ -7,8 +7,7 @@ $cache = Join-Path $HOME '.gradle/caches/modules-2/files-2.1'
 $properties = Get-Content (Join-Path $module 'gradle.properties') -Raw | ConvertFrom-StringData
 $expectedBoundAssemblers = @(
     'TACZ_ASSEMBLER_GUN', 'TACZ_ASSEMBLER_AMMO', 'TACZ_ASSEMBLER_ATTACHMENT',
-    'EXTENDED_TACZ_ASSEMBLER_GUN', 'EXTENDED_TACZ_ASSEMBLER_AMMO', 'EXTENDED_TACZ_ASSEMBLER_ATTACHMENT',
-    'MOLECULAR_ASSEMBLER_GUN', 'MOLECULAR_ASSEMBLER_AMMO', 'MOLECULAR_ASSEMBLER_ATTACHMENT'
+    'EXTENDED_TACZ_ASSEMBLER_GUN', 'EXTENDED_TACZ_ASSEMBLER_AMMO', 'EXTENDED_TACZ_ASSEMBLER_ATTACHMENT'
 )
 foreach ($loader in @(
     @{ Name = 'Forge'; Path = 'forge-1.20.1/src/main/java/me/myogoo/appliedtacz/client/AETaCZItemDecorators.java'; Interfaces = @('GUN_SMITH_TABLE', 'AMMO_ASSEMBLY_TABLE', 'ATTACHMENT_TABLE') },
@@ -30,7 +29,7 @@ $classpath = @(
     (Join-Path $module 'build/classes/java/main')
     (Get-ChildItem (Join-Path $module 'build/moddev/artifacts/*-merged.jar')).FullName
     (Get-Content (Join-Path $module 'build/moddev/clientLegacyClasspath.txt'))
-    (Get-ChildItem "$cache/maven.modrinth/tacz-1.21.1/$($properties.TaCZ_version)" -Recurse -Filter '*.jar').FullName
+    (Get-ChildItem "$cache/maven.modrinth/timeless-and-classics-zero/$($properties.TaCZ_version)" -Recurse -Filter '*.jar').FullName
     (Get-ChildItem "$cache/org.appliedenergistics/appliedenergistics2/$($properties.AE2_version)" -Recurse -Filter '*.jar').FullName
 ) -join ';'
 $output = Join-Path $env:TEMP 'appliedtacz-workbench-bounds-check'

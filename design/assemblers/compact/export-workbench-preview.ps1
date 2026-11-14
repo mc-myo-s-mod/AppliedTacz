@@ -10,7 +10,7 @@ $classpath = @(
     (Join-Path $module 'build/classes/java/main')
     (Get-ChildItem (Join-Path $module 'build/moddev/artifacts/*-merged.jar')).FullName
     (Get-Content (Join-Path $module 'build/moddev/clientLegacyClasspath.txt'))
-    (Get-ChildItem "$cache/maven.modrinth/tacz-1.21.1/$($properties.TaCZ_version)" -Recurse -Filter '*.jar').FullName
+    (Get-ChildItem "$cache/maven.modrinth/timeless-and-classics-zero/$($properties.TaCZ_version)" -Recurse -Filter '*.jar').FullName
     (Get-ChildItem "$cache/org.appliedenergistics/appliedenergistics2/$($properties.AE2_version)" -Recurse -Filter '*.jar').FullName
 ) -join ';'
 $output = Join-Path $env:TEMP 'appliedtacz-workbench-preview'

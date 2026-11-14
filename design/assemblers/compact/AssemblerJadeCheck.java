@@ -18,22 +18,24 @@ public class AssemblerJadeCheck {
             assert plugin.contains("AssemblerJadeProvider.INSTANCE, MolecularAssemblerBlock.class") : "tooltip not registered";
             assert assembler.contains("AssemblerNames.title(data.getString(WORKBENCH),") : "tier-aware localized title lost";
             assert assembler.contains("tooltip.remove(") && assembler.contains("CORE_OBJECT_NAME") : "default title not replaced";
-            assert assembler.contains("assembler.isCrafting()") && assembler.contains("assembler.isNetworkOnline()") : "status not collected";
+            assert !assembler.contains("assembler.isCrafting()") && !assembler.contains("assembler.isNetworkOnline()")
+                    : "removed status data is still being collected";
             String client = assembler.substring(assembler.indexOf("public void appendTooltip"), assembler.indexOf("public void appendServerData"));
             assert !client.contains("Component.literal") && !client.contains("PendingOutput") : "internal ID or buffer clutter";
+            assert !client.contains("gui.appliedtacz.assembler.status") : "removed status line is still shown";
             String registry = module.equals("forge-1.20.1") ? "items" : "item";
             String hidden = Files.readString(root.resolve(module + "/src/main/resources/data/c/tags/" + registry
                     + "/hidden_from_recipe_viewers.json"));
             assert hidden.replaceAll("\\s+", "").equals("{\"replace\":false,\"values\":["
-                    + "\"appliedtacz:tacz_assembler_universal\",\"appliedtacz:molecular_assembler_universal\","
-                    + "\"appliedtacz:molecular_assembler\"]}") : "hide tag must contain exactly the three universal items";
+                    + "\"appliedtacz:tacz_assembler_universal\",\"appliedtacz:molecular_assembler\"]}")
+                    : "hide tag must contain exactly the two single-block universal items";
             for (String locale : new String[] { "en_us", "ko_kr" }) {
-                String language = Files.readString(root.resolve(module
-                        + "/src/main/resources/assets/appliedtacz/lang/" + locale + ".json"));
+                String language = Files.readString(root.resolve("common/src/main/resources/assets/appliedtacz/lang/"
+                        + locale + ".json"));
                 assert language.matches("(?s).*\"config\\.jade\\.plugin_appliedtacz\\.assembler_status\"\\s*:\\s*\"[^\"]+\".*")
                         : module + "/" + locale + " missing the Jade provider config translation";
             }
         }
-        System.out.println("PASS: both Jade registrations preserve workbenches, reuse AE2 config, translate provider config/title/status and hide universal viewer entries");
+        System.out.println("PASS: both Jade registrations preserve localized workbench titles and AE2 config, omit status data/lines and hide universal viewer entries");
     }
 }
