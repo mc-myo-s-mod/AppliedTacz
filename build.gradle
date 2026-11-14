@@ -65,12 +65,6 @@ modProjects.each { modProject ->
         exclude { details ->
             !details.directory && loaderResourceDirs.any { new File(it, details.relativePath.pathString).isFile() }
         }
-        if (modProject.name == 'neoforge-1.21.1') {
-            filteringCharset = 'UTF-8'
-            filesMatching('assets/appliedtacz/models/**/molecular_assembler_*.json') {
-                filter { line -> line.replace('"forge_data":', '"neoforge_data":') }
-            }
-        }
     }
 
     modProject.plugins.withId('java') {

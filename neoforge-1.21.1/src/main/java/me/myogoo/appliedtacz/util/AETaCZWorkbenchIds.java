@@ -33,14 +33,14 @@ public final class AETaCZWorkbenchIds {
         if (block == ModBlocks.AMMO_ASSEMBLY_TABLE.get()) {
             return AMMO_WORKBENCH_ID;
         }
-        if (block == ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get() || block == ModBlocks.TACZ_ASSEMBLER_AMMO.get()
+        if (block == ModBlocks.TACZ_ASSEMBLER_AMMO.get()
                 || block == ModBlocks.EXTENDED_TACZ_ASSEMBLER_AMMO.get()) {
             return AMMO_WORKBENCH_ID;
         }
         if (block == ModBlocks.ATTACHMENT_TABLE.get()) {
             return ATTACHMENT_WORKBENCH_ID;
         }
-        if (block == ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get() || block == ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get()
+        if (block == ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get()
                 || block == ModBlocks.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get()) {
             return ATTACHMENT_WORKBENCH_ID;
         }

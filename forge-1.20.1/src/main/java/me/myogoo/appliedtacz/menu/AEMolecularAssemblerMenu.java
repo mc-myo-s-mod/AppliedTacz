@@ -6,12 +6,12 @@ import appeng.menu.guisync.GuiSync;
 import appeng.menu.slot.InaccessibleSlot;
 import appeng.menu.slot.RestrictedInputSlot;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.UpgradeInventories;
 import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
 import appeng.util.inv.AppEngInternalInventory;
 import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
-import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -28,19 +28,12 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
             AEMolecularAssemblerMenu::fromNetwork);
 
     private final @Nullable AEMolecularAssemblerBlockEntity blockEntity;
+    private final IUpgradeInventory upgrades;
     private final AppEngInternalInventory previewInventory = new AppEngInternalInventory(1);
     private final Slot previewSlot;
 
-    @GuiSync(0)
-    public boolean networkPowered;
-    @GuiSync(1)
-    public boolean networkOnline;
-    @GuiSync(2)
-    public boolean gridBooted;
     @GuiSync(3)
     public String workbenchId = "";
-    @GuiSync(4)
-    public boolean crafting;
 
     public AEMolecularAssemblerMenu(int id, Inventory inventory,
             @Nullable AEMolecularAssemblerBlockEntity blockEntity) {
@@ -58,10 +51,11 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
                 }
             }.setStackLimit(1), SlotSemantics.ENCODED_PATTERN);
         }
-        setupUpgrades(this.blockEntity == null
+        this.upgrades = this.blockEntity == null
                 ? UpgradeInventories.forMachine(AEBlocks.MOLECULAR_ASSEMBLER,
                         AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS, () -> {})
-                : this.blockEntity.getUpgrades());
+                : this.blockEntity.getUpgrades();
+        setupUpgrades(this.upgrades);
         createPlayerInventorySlots(inventory);
         if (isServerSide()) {
             updateState();
@@ -128,26 +122,16 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
         return this.previewInventory.getStackInSlot(0).copy();
     }
 
-    public boolean isExtended() {
-        return this.blockEntity != null
-                && this.blockEntity.getBlockState().getBlock() instanceof MolecularAssemblerBlock block
-                && block.isExtended();
+    public IUpgradeInventory getUpgrades() {
+        return this.upgrades;
     }
 
     private void updateState() {
         if (this.blockEntity == null || !this.blockEntity.isValidMenuRoot()) {
-            this.networkPowered = false;
-            this.networkOnline = false;
-            this.gridBooted = false;
-            this.crafting = false;
             this.workbenchId = "";
             this.previewInventory.setItemDirect(0, ItemStack.EMPTY);
             return;
         }
-        this.networkPowered = this.blockEntity.isNetworkPowered();
-        this.networkOnline = this.blockEntity.isNetworkOnline();
-        this.gridBooted = this.blockEntity.hasBootedGrid();
-        this.crafting = this.blockEntity.isCrafting();
         this.workbenchId = this.blockEntity.getMenuWorkbenchId();
         this.previewInventory.setItemDirect(0, this.blockEntity.getPendingOutput());
     }

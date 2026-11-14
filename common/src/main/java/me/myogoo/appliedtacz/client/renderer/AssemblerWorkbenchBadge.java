@@ -5,6 +5,7 @@ import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.api.item.nbt.BlockItemDataAccessor;
 import com.tacz.guns.resource.index.CommonBlockIndex;
+import me.myogoo.appliedtacz.crafting.TaCZPatternMetadata;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.ItemRenderer;
@@ -14,6 +15,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public final class AssemblerWorkbenchBadge {
+    private static final int GUI_ITEM_BLIT_OFFSET = 150;
     // Reloaded gunpacks replace their index objects, so obsolete item previews can be collected.
     private static final Map<CommonBlockIndex, ItemStack> WORKBENCH_ITEMS = new WeakHashMap<>();
 
@@ -21,16 +23,19 @@ public final class AssemblerWorkbenchBadge {
     }
 
     public static boolean render(GuiGraphics graphics, Font font, ItemStack stack, int x, int y) {
-        if (!(stack.getItem() instanceof BlockItemDataAccessor accessor)) {
+        var id = stack.getItem() instanceof BlockItemDataAccessor accessor
+                ? accessor.getBlockId(stack) : TaCZPatternMetadata.getWorkbenchId(stack);
+        if (id == null) {
             return false;
         }
-        var id = accessor.getBlockId(stack);
         var index = TimelessAPI.getCommonBlockIndex(id).orElse(null);
         if (index == null) {
             return false;
         }
         var workbench = WORKBENCH_ITEMS.computeIfAbsent(index,
                 key -> BlockItemBuilder.create(key.getBlock()).setId(id).build());
+        // TaCZ renders its model immediately; finish the slot's queued decorations first.
+        graphics.flush();
         graphics.pose().pushPose();
         try {
             transformBadge(graphics.pose(), x, y);
@@ -43,7 +48,8 @@ public final class AssemblerWorkbenchBadge {
     }
 
     static void transformBadge(PoseStack poses, int x, int y) {
-        poses.translate(x + 8, y + 8, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10);
+        // Compensate renderItem's +150 so slot badges stay below tooltips at Z=400.
+        poses.translate(x + 8, y + 8, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10 - GUI_ITEM_BLIT_OFFSET);
         poses.scale(0.5F, 0.5F, 1.0F);
     }
 }

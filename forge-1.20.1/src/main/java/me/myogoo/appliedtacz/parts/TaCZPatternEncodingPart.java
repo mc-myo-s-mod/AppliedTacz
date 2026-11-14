@@ -21,16 +21,17 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 public class TaCZPatternEncodingPart extends AbstractTerminalPart {
-    @PartModels
-    public static final ResourceLocation MODEL_OFF = ResourceLocation.fromNamespaceAndPath(
-            AppliedTaCZ.MODID, "part/tacz_pattern_encoding_terminal_off");
-    @PartModels
-    public static final ResourceLocation MODEL_ON = ResourceLocation.fromNamespaceAndPath(
-            AppliedTaCZ.MODID, "part/tacz_pattern_encoding_terminal_on");
+    private static final ResourceLocation LOCAL_MODEL_OFF = new ResourceLocation(AppliedTaCZ.MODID,
+            "part/tacz_pattern_encoding_terminal_off");
+    private static final ResourceLocation LOCAL_MODEL_ON = new ResourceLocation(AppliedTaCZ.MODID,
+            "part/tacz_pattern_encoding_terminal_on");
 
-    public static final IPartModel MODELS_OFF = new PartModel(MODEL_BASE, MODEL_OFF, MODEL_STATUS_OFF);
-    public static final IPartModel MODELS_ON = new PartModel(MODEL_BASE, MODEL_ON, MODEL_STATUS_ON);
-    public static final IPartModel MODELS_HAS_CHANNEL = new PartModel(MODEL_BASE, MODEL_ON, MODEL_STATUS_HAS_CHANNEL);
+    @PartModels
+    public static final IPartModel MODELS_OFF = new PartModel(MODEL_BASE, LOCAL_MODEL_OFF, MODEL_STATUS_OFF);
+    @PartModels
+    public static final IPartModel MODELS_ON = new PartModel(MODEL_BASE, LOCAL_MODEL_ON, MODEL_STATUS_ON);
+    @PartModels
+    public static final IPartModel MODELS_HAS_CHANNEL = new PartModel(MODEL_BASE, LOCAL_MODEL_ON, MODEL_STATUS_HAS_CHANNEL);
 
     private final AppEngInternalInventory blankPatterns = new AppEngInternalInventory(this, 1, 64,
             new AEItemDefinitionFilter(AEItems.BLANK_PATTERN));

@@ -116,6 +116,7 @@ dependencies {
     runtimeOnly "maven.modrinth:jjuIRIVr:${MEGACells_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${JEI_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${JEI_version}"
+    compileOnly "maven.modrinth:emi:${EMI_version}+neoforge"
     implementation "curse.maven:jade-324717:7545219"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${JEI_version}"
 

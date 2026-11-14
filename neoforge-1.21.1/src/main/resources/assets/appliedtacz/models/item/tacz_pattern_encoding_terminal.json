@@ -1,3 +1,8 @@
 {
-  "parent": "ae2:item/pattern_encoding_terminal"
+  "parent": "ae2:item/display_base",
+  "textures": {
+    "front_bright": "appliedtacz:part/pattern_encoding_terminal_bright",
+    "front_medium": "appliedtacz:part/pattern_encoding_terminal_medium",
+    "front_dark": "appliedtacz:part/pattern_encoding_terminal_dark"
+  }
 }

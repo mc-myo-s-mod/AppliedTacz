@@ -28,7 +28,7 @@ public final class AppliedTaczClientConfig {
         COMPACT_LAYOUT = builder
                 .comment("Use nine ME inventory columns instead of thirteen in the TaCZ pattern terminal.",
                         "The window width and recipe encoding area stay unchanged.")
-                .define("compactLayout", false);
+                .define("compactLayout", true);
         builder.pop();
 
         SPEC = builder.build();

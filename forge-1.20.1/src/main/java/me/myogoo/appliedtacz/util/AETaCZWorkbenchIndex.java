@@ -83,10 +83,13 @@ public final class AETaCZWorkbenchIndex {
         }
 
         public ItemStack createAssemblerStack() {
-            if (WorkbenchUpgradeKind.forAssembler(blockId) == null) {
-                return new ItemStack(WorkbenchUpgradeKind.assemblerBlockFor(blockId));
-            }
-            return BlockItemBuilder.create(WorkbenchUpgradeKind.assemblerBlockFor(blockId))
+            return BlockItemBuilder.create(kind.assemblerBlock())
+                    .setId(blockId)
+                    .build();
+        }
+
+        public ItemStack createExtendedAssemblerStack() {
+            return BlockItemBuilder.create(kind.extendedAssemblerBlock())
                     .setId(blockId)
                     .build();
         }

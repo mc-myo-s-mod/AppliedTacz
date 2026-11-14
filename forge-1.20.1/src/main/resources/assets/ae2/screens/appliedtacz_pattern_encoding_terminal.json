@@ -1,0 +1,68 @@
+{
+  "includes": ["terminals/terminal.json"],
+  "terminalStyle": {
+    "header": {
+      "texture": "appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [0, 0, 198, 17]
+    },
+    "firstRow": {
+      "texture": "appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [0, 17, 198, 18]
+    },
+    "row": {
+      "texture": "appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [0, 35, 198, 18]
+    },
+    "lastRow": {
+      "texture": "appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [0, 53, 198, 18]
+    },
+    "bottom": {
+      "texture": "appliedtacz:textures/guis/tacz_pattern_encoding_terminal.png",
+      "textureWidth": 512,
+      "textureHeight": 512,
+      "srcRect": [0, 71, 198, 170]
+    }
+  },
+  "images": {
+    "encodingScrollTrack": {
+      "texture": "guis/pattern_modes.png",
+      "srcRect": [7, 77, 9, 54]
+    }
+  },
+  "slots": {
+    "PROCESSING_INPUTS": {"left": 127, "bottom": 154, "grid": "BREAK_AFTER_3COLS"},
+    "BLANK_PATTERN": {"left": 173, "bottom": 82},
+    "ENCODED_PATTERN": {"left": 173, "bottom": 28},
+    "PLAYER_INVENTORY": {"left": 5, "bottom": 82, "grid": "BREAK_AFTER_9COLS"},
+    "PLAYER_HOTBAR": {"left": 5, "bottom": 24, "grid": "HORIZONTAL"}
+  },
+  "text": {
+    "dialog_title": {"position": {"left": 8, "top": 5}, "scale": 1.0, "maxWidth": 145},
+    "workbench": {"position": {"left": 8, "bottom": 166}, "scale": 1.0, "maxWidth": 155},
+    "player_inventory_title": {"text": {"translate": "container.inventory"}, "position": {"left": 5, "bottom": 93}}
+  },
+  "widgets": {
+    "search": {"left": 100, "top": 4, "width": 69, "height": 12},
+    "recipe0": {"left": 8, "bottom": 155, "width": 102, "height": 18},
+    "recipe1": {"left": 8, "bottom": 137, "width": 102, "height": 18},
+    "recipe2": {"left": 8, "bottom": 119, "width": 102, "height": 18},
+    "recipesScroll": {"left": 115, "bottom": 154, "height": 52},
+    "ingredientsScroll": {"left": 183, "bottom": 154, "height": 52},
+    "recipesWheel": {"left": 8, "bottom": 155, "width": 115, "height": 54},
+    "ingredientsWheel": {"left": 126, "bottom": 155, "width": 65, "height": 54},
+    "workbenches": {"left": 195, "bottom": 165, "width": 22, "height": 80},
+    "workbenchTab0": {"left": 0, "top": 0, "width": 20, "height": 20},
+    "workbenchTab1": {"left": 0, "top": 20, "width": 20, "height": 20},
+    "workbenchTab2": {"left": 0, "top": 40, "width": 20, "height": 22},
+    "encodePattern": {"left": 173, "bottom": 57}
+  }
+}

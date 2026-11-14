@@ -5,6 +5,7 @@ import com.tacz.guns.block.AbstractGunSmithTableBlock;
 import com.tacz.guns.block.GunSmithTableBlockA;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import me.myogoo.appliedtacz.registry.ModBlocks;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
@@ -64,6 +65,14 @@ public enum WorkbenchUpgradeKind {
         return assemblerResult.get();
     }
 
+    public Block extendedAssemblerBlock() {
+        return switch (this) {
+            case GUN_SMITH_TABLE -> ModBlocks.EXTENDED_TACZ_ASSEMBLER_GUN.get();
+            case AMMO_WORKBENCH -> ModBlocks.EXTENDED_TACZ_ASSEMBLER_AMMO.get();
+            case ATTACHMENT_WORKBENCH -> ModBlocks.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get();
+        };
+    }
+
     public ResourceLocation defaultBlockId() {
         return defaultBlockId;
     }
@@ -74,7 +83,7 @@ public enum WorkbenchUpgradeKind {
                 return kind;
             }
         }
-        return null;
+        return AETaCZWorkbenchIndex.getKind(workbenchId).orElse(null);
     }
 
     public static Block assemblerBlockFor(ResourceLocation workbenchId) {
@@ -103,24 +112,21 @@ public enum WorkbenchUpgradeKind {
         if (appliedWorkbench == ModBlocks.AMMO_ASSEMBLY_TABLE.get()) {
             return AMMO_WORKBENCH;
         }
-        if (appliedWorkbench == ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get()
-                || appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_AMMO.get()
+        if (appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_AMMO.get()
                 || appliedWorkbench == ModBlocks.EXTENDED_TACZ_ASSEMBLER_AMMO.get()) {
             return AMMO_WORKBENCH;
         }
         if (appliedWorkbench == ModBlocks.ATTACHMENT_TABLE.get()) {
             return ATTACHMENT_WORKBENCH;
         }
-        if (appliedWorkbench == ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get()
-                || appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get()
+        if (appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get()
                 || appliedWorkbench == ModBlocks.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get()) {
             return ATTACHMENT_WORKBENCH;
         }
         if (appliedWorkbench == ModBlocks.GUN_SMITH_TABLE.get()) {
             return GUN_SMITH_TABLE;
         }
-        if (appliedWorkbench == ModBlocks.MOLECULAR_ASSEMBLER_GUN.get()
-                || appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_GUN.get()
+        if (appliedWorkbench == ModBlocks.TACZ_ASSEMBLER_GUN.get()
                 || appliedWorkbench == ModBlocks.EXTENDED_TACZ_ASSEMBLER_GUN.get()) {
             return GUN_SMITH_TABLE;
         }

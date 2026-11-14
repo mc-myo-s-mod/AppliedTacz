@@ -16,7 +16,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class AETaCZAssemblerItem extends BlockItem implements BlockItemDataAccessor {
     public AETaCZAssemblerItem(Block block) {
-        super(block, new Item.Properties().stacksTo(1));
+        super(block, new Item.Properties().stacksTo(64));
     }
 
     @Override

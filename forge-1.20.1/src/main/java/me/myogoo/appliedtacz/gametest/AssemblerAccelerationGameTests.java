@@ -8,6 +8,8 @@ import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
 import appeng.menu.AutoCraftingMenu;
 import com.tacz.guns.api.TimelessAPI;
+import com.tacz.guns.api.item.IBlock;
+import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.init.ModRecipe;
 import me.myogoo.appliedtacz.AppliedTaCZ;
 import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
@@ -261,8 +263,25 @@ public final class AssemblerAccelerationGameTests {
             ItemStack result = crafting.assemble(input, helper.getLevel().registryAccess());
             helper.assertTrue(crafting.matches(input, helper.getLevel()) && result.is(block.asItem())
                     && result.getCount() == 1 && block.isExtended() && !block.isUniversal()
-                    && block.partCount() == 1 && WorkbenchUpgradeKind.fromAppliedWorkbench(block) == kind,
+                    && block.getStateDefinition().getProperties().size() == 1
+                    && block.defaultBlockState().hasProperty(MolecularAssemblerBlock.FACING)
+                    && WorkbenchUpgradeKind.fromAppliedWorkbench(block) == kind,
                     "Expected one correctly bound compact extended assembler");
+            for (int slot = 0; slot < 9; slot++) {
+                if (slot != 4) {
+                    ItemStack basic = input.getItem(slot);
+                    ((IBlock) basic.getItem()).getBlockId(basic);
+                }
+            }
+            helper.assertTrue(crafting.matches(input, helper.getLevel()),
+                    "Expected default assemblers to remain craftable after TaCZ reads their BlockId");
+            input.setItem(0, BlockItemBuilder.create(kind.assemblerBlock())
+                    .setId(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("appliedtacz_gametest",
+                            "mixed_workbench")).build());
+            helper.assertTrue(helper.getLevel().getRecipeManager()
+                            .getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, helper.getLevel())
+                            .isEmpty(),
+                    "Expected a mixed addon workbench ID to reject every Extended recipe");
             input.setItem(0, ItemStack.EMPTY);
             helper.assertTrue(!crafting.matches(input, helper.getLevel()), "Expected missing assembler to reject recipe");
             input.setItem(0, new ItemStack(kind == WorkbenchUpgradeKind.AMMO_WORKBENCH

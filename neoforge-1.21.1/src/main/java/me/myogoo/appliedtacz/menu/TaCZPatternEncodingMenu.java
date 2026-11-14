@@ -19,6 +19,7 @@ import com.tacz.guns.crafting.GunSmithTableRecipe;
 import me.myogoo.appliedtacz.crafting.AssemblerRecipeMatcher;
 import me.myogoo.appliedtacz.crafting.PatternEncodingInputs;
 import me.myogoo.appliedtacz.crafting.TaCZPatternEncodingRecipes;
+import me.myogoo.appliedtacz.crafting.TaCZPatternMetadata;
 import me.myogoo.appliedtacz.parts.TaCZPatternEncodingPart;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -271,6 +272,10 @@ public class TaCZPatternEncodingMenu extends MEStorageMenu {
         if (!stillValid(getPlayer())) {
             return;
         }
+        if (!java.util.Objects.equals(AEItemKey.of(encodedSlot.getItem()), lastEncodedPattern)) {
+            broadcastChanges();
+            return;
+        }
         updateEncodingState();
         if (!readyToEncode) {
             return;
@@ -279,8 +284,11 @@ public class TaCZPatternEncodingMenu extends MEStorageMenu {
         if (pattern.isEmpty()) {
             return;
         }
+        TaCZPatternMetadata.set(pattern, parseId(workbenchId), getPlayer());
         // Only mutate real items after every server-side recipe and output check has succeeded.
-        terminal.getBlankPatternInventory().extractItem(0, 1, false);
+        if (encodedSlot.getItem().isEmpty()) {
+            terminal.getBlankPatternInventory().extractItem(0, 1, false);
+        }
         terminal.getEncodedPatternInventory().setItemDirect(0, pattern);
         lastEncodedPattern = AEItemKey.of(pattern);
         broadcastChanges();
@@ -336,9 +344,18 @@ public class TaCZPatternEncodingMenu extends MEStorageMenu {
             return;
         }
         var workbenches = new ArrayList<>(TaCZPatternEncodingRecipes.getWorkbenches());
-        ResourceLocation previousWorkbench = parseId(workbenchId);
-        if (workbenches.remove(previousWorkbench)) {
-            workbenches.add(0, previousWorkbench);
+        if (TaCZPatternMetadata.hasWorkbenchId(encodedSlot.getItem())) {
+            ResourceLocation encodedWorkbench = TaCZPatternMetadata.getWorkbenchId(encodedSlot.getItem());
+            if (encodedWorkbench == null || !workbenches.contains(encodedWorkbench)) {
+                return;
+            }
+            workbenches.clear();
+            workbenches.add(encodedWorkbench);
+        } else {
+            ResourceLocation previousWorkbench = parseId(workbenchId);
+            if (workbenches.remove(previousWorkbench)) {
+                workbenches.add(0, previousWorkbench);
+            }
         }
         for (var workbench : workbenches) {
             for (var entry : TaCZPatternEncodingRecipes.getRecipes(getPlayer().level(), workbench)) {
@@ -363,9 +380,13 @@ public class TaCZPatternEncodingMenu extends MEStorageMenu {
         encodingError = "";
         if (!selectionIsCurrent()) {
             encodingError = "gui.appliedtacz.pattern_encoding.select_recipe";
-        } else if (!encodedSlot.getItem().isEmpty()) {
+        } else if (!encodedSlot.getItem().isEmpty()
+                && (encodedSlot.getItem().getCount() != 1
+                        || !encodedSlot.getItem().is(AEItems.PROCESSING_PATTERN.asItem())
+                        || !(PatternDetailsHelper.decodePattern(encodedSlot.getItem(), getPlayer().level())
+                                instanceof AEProcessingPattern))) {
             encodingError = "gui.appliedtacz.pattern_encoding.output_occupied";
-        } else if (!blankSlot.getItem().is(AEItems.BLANK_PATTERN.asItem())) {
+        } else if (encodedSlot.getItem().isEmpty() && !blankSlot.getItem().is(AEItems.BLANK_PATTERN.asItem())) {
             encodingError = "gui.appliedtacz.pattern_encoding.no_blank_pattern";
         }
         readyToEncode = encodingError.isEmpty();

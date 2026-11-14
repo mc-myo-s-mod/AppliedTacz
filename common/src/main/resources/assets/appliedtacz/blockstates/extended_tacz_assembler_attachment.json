@@ -1,19 +1,19 @@
 {
   "variants": {
     "facing=north": {
-      "model": "appliedtacz:block/tacz_assembler",
+      "model": "appliedtacz:block/extended_tacz_assembler",
       "y": 0
     },
     "facing=east": {
-      "model": "appliedtacz:block/tacz_assembler",
+      "model": "appliedtacz:block/extended_tacz_assembler",
       "y": 90
     },
     "facing=south": {
-      "model": "appliedtacz:block/tacz_assembler",
+      "model": "appliedtacz:block/extended_tacz_assembler",
       "y": 180
     },
     "facing=west": {
-      "model": "appliedtacz:block/tacz_assembler",
+      "model": "appliedtacz:block/extended_tacz_assembler",
       "y": 270
     }
   }

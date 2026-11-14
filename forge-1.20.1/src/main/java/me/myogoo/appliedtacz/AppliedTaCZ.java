@@ -41,7 +41,6 @@ public class AppliedTaCZ {
         AETaCZBlock.ITEMS.register(modEventBus);
         AETaczMenu.REGISTER.register(modEventBus);
         AETaCZBlockEntity.REGISTER.register(modEventBus);
-        AETaCZCreativeTab.REGISTER.register(modEventBus);
         modEventBus.addListener(AETaCZCreativeTab::addToTaczTab);
         modEventBus.addListener(AppliedTaczGameTests::register);
         modEventBus.addListener(AssemblerAccelerationGameTests::register);
@@ -51,6 +50,8 @@ public class AppliedTaCZ {
             modEventBus.addListener(AppliedTaczClient::init);
             modEventBus.addListener(AppliedTaczClient::registerRenderers);
             modEventBus.addListener(AppliedTaczClient::registerItemDecorations);
+            modEventBus.addListener(AppliedTaczClient::registerItemColors);
+            modEventBus.addListener(AppliedTaczClient::registerGeometryLoaders);
         });
 
     }

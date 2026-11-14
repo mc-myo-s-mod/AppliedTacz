@@ -1,13 +1,15 @@
 package me.myogoo.appliedtacz.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import appeng.api.upgrades.Upgrades;
 import appeng.client.gui.AEBaseScreen;
-import appeng.client.gui.Icon;
-import appeng.client.gui.style.PaletteColor;
 import appeng.client.gui.style.ScreenStyle;
-import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
+import appeng.client.gui.widgets.UpgradesPanel;
+import appeng.core.localization.GuiText;
+import appeng.menu.SlotSemantics;
 import me.myogoo.appliedtacz.menu.AEMolecularAssemblerMenu;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -15,50 +17,43 @@ public class AEMolecularAssemblerScreen extends AEBaseScreen<AEMolecularAssemble
     public AEMolecularAssemblerScreen(AEMolecularAssemblerMenu menu, Inventory inventory, Component title,
             ScreenStyle style) {
         super(menu, inventory, title, style);
+        widgets.add("upgrades", new UpgradesPanel(menu.getSlots(SlotSemantics.UPGRADE),
+                this::getCompatibleUpgrades));
         setTextContent("dialog_title", getTitle());
     }
 
     @Override
     public Component getTitle() {
-        return AssemblerNames.title(menu.workbenchId, menu.isExtended());
+        return Component.translatable("block.appliedtacz.molecular_assembler");
     }
 
     @Override
     protected void updateBeforeRender() {
         super.updateBeforeRender();
-        setTextContent("dialog_title", getTitle());
-        String networkState = !menu.networkPowered ? "offline"
-                : !menu.gridBooted ? "booting" : menu.networkOnline ? "connected" : "no_channel";
-        boolean active = menu.networkPowered && menu.networkOnline && menu.gridBooted;
-        Component network = Component.translatable("gui.appliedtacz.ae_network." + networkState)
-                .withStyle(active ? ChatFormatting.DARK_GREEN : ChatFormatting.DARK_RED);
-        setTextContent("network", Component.translatable("gui.appliedtacz.ae_network", network));
-
-        String status = !active ? "offline" : menu.crafting ? "crafting"
-                : menu.getPendingOutput().isEmpty() ? "ready" : "returning";
-        setTextContent("status", Component.translatable("gui.appliedtacz.assembler.status",
-                Component.translatable("gui.appliedtacz.assembler." + status)));
+        Component workbench = AssemblerNames.workbenchName(menu.workbenchId);
+        String name = workbench.getString();
+        if (name.startsWith("TaCZ ")) {
+            workbench = Component.literal(name.substring(5)).withStyle(workbench.getStyle());
+        }
+        float scale = getStyle().getText().get("workbench_title").getScale();
+        int maxWidth = (int) ((imageWidth - 16) / scale);
+        // Keep addon names on the second line without shrinking the shared title font.
+        if (font.width(workbench) > maxWidth) {
+            workbench = Component.literal(font.plainSubstrByWidth(workbench.getString(),
+                    maxWidth - font.width("…")) + "…").withStyle(workbench.getStyle());
+        }
+        setTextContent("workbench_title", workbench);
     }
 
-    @Override
-    public void drawBG(GuiGraphics graphics, int offsetX, int offsetY, int mouseX, int mouseY, float partialTicks) {
-        super.drawBG(graphics, offsetX, offsetY, mouseX, mouseY, partialTicks);
-        int divider = style.getColor(PaletteColor.MUTED_TEXT_COLOR).toARGB();
-        graphics.hLine(offsetX + 12, offsetX + 243, offsetY + 26, divider);
-        graphics.hLine(offsetX + 12, offsetX + 243, offsetY + 139, divider);
-        Icon.SLOT_BACKGROUND.getBlitter().dest(offsetX + 15, offsetY + 73).blit(graphics);
-        for (int i = 0; i < AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS; i++) {
-            Icon.SLOT_BACKGROUND.getBlitter().dest(offsetX + 119 + i * 18, offsetY + 73).blit(graphics);
-        }
-        for (int i = 0; i < AEMolecularAssemblerBlockEntity.PATTERN_SLOTS; i++) {
-            Icon.SLOT_BACKGROUND.getBlitter().dest(offsetX + 47 + i * 18, offsetY + 116).blit(graphics);
-        }
-        for (int row = 0; row < 4; row++) {
-            for (int column = 0; column < 9; column++) {
-                int y = row < 3 ? 157 + row * 18 : 215;
-                Icon.SLOT_BACKGROUND.getBlitter().dest(offsetX + 47 + column * 18, offsetY + y).blit(graphics);
-            }
-        }
+    // AE2 1.21 adds a background even to an empty toolbar. The hook does not exist on 1.20.
+    protected boolean shouldAddToolbar() {
+        return false;
     }
 
+    private List<Component> getCompatibleUpgrades() {
+        var lines = new ArrayList<Component>();
+        lines.add(GuiText.CompatibleUpgrades.text());
+        lines.addAll(Upgrades.getTooltipLinesForMachine(menu.getUpgrades().getUpgradableItem()));
+        return lines;
+    }
 }

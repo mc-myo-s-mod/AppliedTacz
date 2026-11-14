@@ -2,7 +2,6 @@
   "replace": false,
   "values": [
     "appliedtacz:tacz_assembler_universal",
-    "appliedtacz:molecular_assembler_universal",
     "appliedtacz:molecular_assembler"
   ]
 }

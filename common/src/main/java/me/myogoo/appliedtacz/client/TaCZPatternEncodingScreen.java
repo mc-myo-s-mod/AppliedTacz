@@ -11,7 +11,6 @@ import appeng.client.gui.Icon;
 import appeng.client.gui.me.common.MEStorageScreen;
 import appeng.client.gui.me.common.RepoSlot;
 import appeng.client.gui.me.common.StackSizeRenderer;
-import appeng.client.gui.style.BackgroundGenerator;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.style.SlotPosition;
 import appeng.client.gui.style.TerminalStyle;
@@ -20,10 +19,12 @@ import appeng.client.gui.widgets.Scrollbar;
 import appeng.client.gui.widgets.TabButton;
 import appeng.client.gui.widgets.ToggleButton;
 import appeng.core.localization.ButtonToolTips;
+import appeng.core.localization.GuiText;
 import appeng.core.localization.Tooltips;
 import appeng.menu.SlotSemantics;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.builder.BlockItemBuilder;
+import me.myogoo.appliedtacz.client.renderer.AssemblerWorkbenchBadge;
 import me.myogoo.appliedtacz.crafting.PatternEncodingInputs;
 import me.myogoo.appliedtacz.config.AppliedTaczClientConfig;
 import me.myogoo.appliedtacz.crafting.TaCZPatternEncodingRecipes;
@@ -45,15 +46,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodingMenu> {
-    private static final int WIDTH = 272;
     private static final int VISIBLE_RECIPES = 3;
     private final Scrollbar recipeScroll;
     private final Scrollbar ingredientScroll;
     private final RecipeButton[] recipeButtons = new RecipeButton[VISIBLE_RECIPES];
-    private final WorkbenchTabs workbenchTabs;
     private final ActionButton encodeButton;
     private final ToggleButton layoutToggle;
     private final TerminalStyle terminalLayout;
+    private final int maxRepoColumns;
     private final SlotPosition ingredientLayout;
     private final int ingredientBottom;
     private List<TaCZPatternEncodingRecipes.Entry> recipes = List.of();
@@ -65,11 +65,12 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
 
     public TaCZPatternEncodingScreen(TaCZPatternEncodingMenu menu, Inventory inventory, Component title,
             ScreenStyle style) {
-        super(menu, inventory, title, style);
-        imageWidth = WIDTH;
+        super(menu, inventory, GuiText.Terminal.text(), style);
         terminalLayout = getStyle().getTerminalStyle();
+        imageWidth = terminalLayout.getScreenWidth();
+        maxRepoColumns = Math.min(13, (imageWidth - 30) / 18);
         // This dedicated style follows the client-wide preference, including reopened screens.
-        terminalLayout.setSlotsPerRow(AppliedTaczClientConfig.compactPatternTerminal() ? 9 : 13);
+        terminalLayout.setSlotsPerRow(AppliedTaczClientConfig.compactPatternTerminal() ? 9 : maxRepoColumns);
         repo.setRowSize(terminalLayout.getSlotsPerRow());
         ingredientLayout = getStyle().getSlots().get(SlotSemantics.PROCESSING_INPUTS.id());
         ingredientBottom = ingredientLayout.getBottom();
@@ -79,7 +80,9 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
                 Component.translatable("gui.appliedtacz.pattern_terminal.switch_layout")));
         layoutToggle.setTooltipOff(List.of(Component.translatable("gui.appliedtacz.pattern_terminal.layout_wide"),
                 Component.translatable("gui.appliedtacz.pattern_terminal.switch_layout")));
-        addToLeftToolbar(layoutToggle);
+        if (maxRepoColumns > 9) {
+            addToLeftToolbar(layoutToggle);
+        }
         recipeScroll = widgets.addScrollBar("recipesScroll", Scrollbar.SMALL);
         recipeScroll.setCaptureMouseWheel(false);
         ingredientScroll = widgets.addScrollBar("ingredientsScroll", Scrollbar.SMALL);
@@ -91,15 +94,14 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
             recipeButtons[i] = new RecipeButton();
             widgets.add("recipe" + i, recipeButtons[i]);
         }
-        workbenchTabs = new WorkbenchTabs();
-        widgets.add("workbenches", workbenchTabs);
+        widgets.add("workbenches", new WorkbenchTabs());
         encodeButton = new ActionButton(ActionItems.ENCODE, menu::encode);
         widgets.add("encodePattern", encodeButton);
     }
 
     private void setCompactLayout(boolean compact) {
         AppliedTaczClientConfig.setCompactPatternTerminal(compact);
-        terminalLayout.setSlotsPerRow(compact ? 9 : 13);
+        terminalLayout.setSlotsPerRow(compact ? 9 : maxRepoColumns);
         layoutToggle.setState(compact);
         resize(minecraft, width, height);
     }
@@ -109,7 +111,7 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
         repo.setRowSize(terminalLayout.getSlotsPerRow());
         repo.updateView();
         super.init();
-        int offset = (13 - terminalLayout.getSlotsPerRow()) * 9;
+        int offset = (maxRepoColumns - terminalLayout.getSlotsPerRow()) * 9;
         if (offset != 0) {
             menu.slots.replaceAll(slot -> slot instanceof RepoSlot repoSlot
                     ? new RepoSlot(repo, repoSlot.getRepoViewIndex(), slot.x + offset, slot.y) : slot);
@@ -124,6 +126,20 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
             displayedWorkbench = menu.workbenchId;
             var id = ResourceLocation.tryParse(displayedWorkbench);
             recipes = id == null ? List.of() : TaCZPatternEncodingRecipes.getRecipes(minecraft.level, id);
+            var workbenchName = id == null
+                    ? Component.translatable("gui.appliedtacz.assembler.workbench_name")
+                    : TimelessAPI.getClientBlockIndex(id)
+                            .map(index -> Component.translatable(index.getName()))
+                            .orElse(Component.translatable("gui.appliedtacz.assembler.workbench_name"));
+            var workbenchLabel = getStyle().getText().get("workbench");
+            if (workbenchLabel != null) {
+                String name = workbenchName.getString();
+                int maxWidth = workbenchLabel.getMaxWidth();
+                if (font.width(name) > maxWidth) {
+                    name = font.plainSubstrByWidth(name, maxWidth - font.width("…")) + "…";
+                }
+                setTextContent("workbench", Component.literal(name));
+            }
             recipeScroll.setCurrentScroll(0);
             recipeScroll.setRange(0, Math.max(0, recipes.size() - VISIBLE_RECIPES), 1);
         }
@@ -131,7 +147,6 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
                 || displayedSelectionRevision != menu.selectionRevision) {
             displayedRecipe = menu.recipeId;
             displayedSelectionRevision = menu.selectionRevision;
-            workbenchTabs.reveal(ResourceLocation.tryParse(displayedWorkbench));
             ingredientScroll.setCurrentScroll(0);
             for (int i = 0; i < recipes.size(); i++) {
                 if (recipes.get(i).id().toString().equals(displayedRecipe)) {
@@ -148,10 +163,6 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
             int index = first + i;
             recipeButtons[i].setRecipe(index < recipes.size() ? recipes.get(index) : null);
         }
-        setTextContent("recipePage", recipes.isEmpty()
-                ? Component.translatable("gui.appliedtacz.pattern_terminal.no_recipes")
-                : Component.translatable("gui.appliedtacz.pattern_terminal.page", first + 1,
-                        Math.min(first + VISIBLE_RECIPES, recipes.size()), recipes.size()));
         ingredientLayout.setBottom(ingredientBottom + ingredientScroll.getCurrentScroll() * 18);
         try {
             repositionSlots(SlotSemantics.PROCESSING_INPUTS);
@@ -165,33 +176,30 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
             slots[i].setActive(row >= 0 && row < 3);
         }
         encodeButton.active = menu.canEncode();
-        setTextContent("encodingStatus", menu.encodingError.isEmpty() ? Component.empty()
-                : Component.translatable(menu.encodingError));
     }
 
     @Override
     public void drawBG(GuiGraphics graphics, int x, int y, int mouseX, int mouseY, float partialTicks) {
-        // Keep AE2's resizable ME grid, but generate the wider TaCZ layout without a new texture atlas.
-        BackgroundGenerator.draw(imageWidth, imageHeight, graphics, x, y);
+        // Let AE2 draw the inherited terminal, including first/last rows, search and pinned-row overlays.
+        super.drawBG(graphics, x, y, mouseX, mouseY, partialTicks);
         for (Slot slot : menu.slots) {
-            if (slot.isActive()) {
+            if (!slot.isActive()) {
+                continue;
+            }
+            if (!(slot instanceof RepoSlot)
+                    && (slot.x < 0 || slot.x + 16 > imageWidth || slot.y < 0 || slot.y + 16 > imageHeight)) {
+                // Fixed slots are baked into the footer; preserve add-on slots outside our frame.
                 Icon.SLOT_BACKGROUND.getBlitter().dest(x + slot.x - 1, y + slot.y - 1).blit(graphics);
             }
         }
-        graphics.hLine(x + 8, x + WIDTH - 9, y + imageHeight - 100, 0xff8b8b8b);
         drawScrollTrack(graphics, x, y, recipeScroll);
         drawScrollTrack(graphics, x, y, ingredientScroll);
-        int gridBottom = y + imageHeight - 178;
-        graphics.fill(x + 249, y + 27, x + 263, gridBottom - 1, 0xff737373);
-        graphics.fill(x + 250, y + 28, x + 262, gridBottom - 2, 0xff373737);
     }
 
-    private static void drawScrollTrack(GuiGraphics graphics, int x, int y, Scrollbar scrollbar) {
+    private void drawScrollTrack(GuiGraphics graphics, int x, int y, Scrollbar scrollbar) {
         var bounds = scrollbar.getBounds();
-        graphics.fill(x + bounds.getX() - 1, y + bounds.getY() - 1,
-                x + bounds.getX() + bounds.getWidth() + 1, y + bounds.getY() + bounds.getHeight() + 1, 0xff737373);
-        graphics.fill(x + bounds.getX(), y + bounds.getY(),
-                x + bounds.getX() + bounds.getWidth(), y + bounds.getY() + bounds.getHeight(), 0xff373737);
+        getStyle().getImage("encodingScrollTrack")
+                .dest(x + bounds.getX() - 1, y + bounds.getY() - 1).blit(graphics);
     }
 
     @Override
@@ -222,6 +230,7 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
             var pattern = slot.getItem();
             // Keep AE2's Shift output icon, but never decorate it with the physical pattern count.
             graphics.renderItem(pattern, slot.x, slot.y);
+            AssemblerWorkbenchBadge.render(graphics, font, pattern, slot.x, slot.y);
             if (hasShiftDown()) {
                 if (!ItemStack.matches(pattern, displayedPattern)) {
                     displayedPattern = pattern.copy();
@@ -309,8 +318,17 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
                     selected ? 0xff465c64 : 0xff373737);
             graphics.renderItem(result, getX() + 1, getY() + 1);
             graphics.renderItemDecorations(font, result, getX() + 1, getY() + 1);
-            String name = font.plainSubstrByWidth(getMessage().getString(), width - 24);
-            graphics.drawString(font, name, getX() + 22, getY() + 5, active ? 0xffeeeeee : 0xff888888, false);
+            float textScale = getStyle().getText().get("workbench").getScale();
+            int maxTextWidth = (int) ((width - 24) / textScale);
+            String name = getMessage().getString();
+            if (font.width(name) > maxTextWidth) {
+                name = font.plainSubstrByWidth(name, maxTextWidth - font.width("…")) + "…";
+            }
+            graphics.pose().pushPose();
+            graphics.pose().translate(getX() + 22, getY() + (height - font.lineHeight * textScale) / 2, 1);
+            graphics.pose().scale(textScale, textScale, 1);
+            graphics.drawString(font, name, 0, 0, active ? 0xffeeeeee : 0xff888888, false);
+            graphics.pose().popPose();
         }
     }
 
@@ -352,9 +370,6 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
     private final class WorkbenchTabs extends ScrollArea {
         private final List<ResourceLocation> ids = TaCZPatternEncodingRecipes.getWorkbenches();
         private final List<TabButton> buttons = new ArrayList<>();
-        private final Button previous;
-        private final Button next;
-        private int first;
         private int horizontalOffset;
         private Rect2i screenBounds = new Rect2i(0, 0, 0, 0);
 
@@ -371,16 +386,12 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
                 tab.setStyle(TabButton.Style.HORIZONTAL);
                 buttons.add(tab);
             }
-            previous = Button.builder(Component.literal("↑"), button -> scroll(-1)).size(11, 12).build();
-            next = Button.builder(Component.literal("↓"), button -> scroll(1)).size(11, 12).build();
         }
 
         @Override
         public void populateScreen(Consumer<AbstractWidget> addWidget, Rect2i bounds, AEBaseScreen<?> screen) {
             screenBounds = bounds;
             buttons.forEach(addWidget);
-            addWidget.accept(previous);
-            addWidget.accept(next);
         }
 
         @Override
@@ -401,48 +412,36 @@ public class TaCZPatternEncodingScreen extends MEStorageScreen<TaCZPatternEncodi
                 }
                 if (x < zone.getX() + zone.getWidth() && x + tabWidth > zone.getX()
                         && y < zone.getY() + zone.getHeight() && y + tabHeight > zone.getY()) {
-                    x = zone.getX() + zone.getWidth() + 2;
+                    x = zone.getX() + zone.getWidth() + 1;
                     i = -1;
                 }
             }
             horizontalOffset = x - screenBounds.getX() - position.getX();
+            int tabPitch = getStyle().getWidget("workbenchTab1").getTop();
             for (int i = 0; i < buttons.size(); i++) {
                 var button = buttons.get(i);
-                button.visible = i >= first && i < first + 3;
-                button.setX(x);
-                button.setY(y + (i - first) * 22);
+                // Match each AE2 version's overlapping horizontal-tab sprites and hitboxes.
+                var tabStyle = getStyle().getWidget(i == buttons.size() - 1 ? "workbenchTab2" : "workbenchTab0");
+                button.setX(x + tabStyle.getLeft());
+                button.setY(y + i * tabPitch);
+                button.setWidth(tabStyle.getWidth());
+                button.setHeight(tabStyle.getHeight());
                 button.setSelected(ids.get(i).toString().equals(menu.workbenchId));
             }
-            previous.setX(x);
-            next.setX(x + 11);
-            previous.setY(y + 67);
-            next.setY(y + 67);
-            previous.visible = next.visible = ids.size() > 3;
-            previous.active = first > 0;
-            next.active = first + 3 < ids.size();
         }
 
         @Override
         public Rect2i getBounds() {
             var bounds = super.getBounds();
+            int tabPitch = getStyle().getWidget("workbenchTab1").getTop();
+            int height = buttons.isEmpty() ? 0
+                    : (buttons.size() - 1) * tabPitch + getStyle().getWidget("workbenchTab2").getHeight();
             return new Rect2i(bounds.getX() + horizontalOffset, bounds.getY(),
-                    bounds.getWidth(), bounds.getHeight());
-        }
-
-        private void reveal(ResourceLocation id) {
-            int index = ids.indexOf(id);
-            if (index >= 0 && (index < first || index >= first + 3)) {
-                first = Math.min(index, Math.max(0, ids.size() - 3));
-            }
-        }
-
-        private void scroll(int delta) {
-            first = Math.max(0, Math.min(first + delta, Math.max(0, ids.size() - 3)));
+                    bounds.getWidth(), height);
         }
 
         @Override
         public boolean onMouseWheel(Point mousePos, double delta) {
-            scroll(delta < 0 ? 1 : -1);
             return true;
         }
     }

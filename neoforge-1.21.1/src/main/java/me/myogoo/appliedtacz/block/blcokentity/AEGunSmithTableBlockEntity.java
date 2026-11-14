@@ -62,8 +62,7 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
             .setInWorldNode(true)
             .setTagName("ae_node")
             .setVisualRepresentation(getBlockState().getBlock())
-            .setExposedOnSides(getBlockState().getBlock() instanceof MolecularAssemblerBlock assembler
-                    && assembler.partCount() == 1 ? EnumSet.allOf(Direction.class)
+            .setExposedOnSides(getBlockState().getBlock() instanceof MolecularAssemblerBlock ? EnumSet.allOf(Direction.class)
                     : EnumSet.complementOf(EnumSet.of(Direction.UP)))
             .setIdlePowerUsage(1.0)
             .setFlags(GridFlags.REQUIRE_CHANNEL);
@@ -285,8 +284,7 @@ public class AEGunSmithTableBlockEntity extends AEBaseBlockEntity implements IGr
     }
 
     private boolean canExposeNodeOnSide(@Nullable Direction dir) {
-        boolean compact = getBlockState().getBlock() instanceof MolecularAssemblerBlock assembler
-                && assembler.partCount() == 1;
+        boolean compact = getBlockState().getBlock() instanceof MolecularAssemblerBlock;
         return dir != null && (dir != Direction.UP || compact) && !isInternalMultiblockFace(dir);
     }
 

@@ -7,7 +7,7 @@
 - Added the TaCZ Pattern Encoding Terminal with workbench tabs, recipe selection, JEI transfer, and encoded-pattern restoration.
 - Kept workbench tabs clear of AE2 view-cell panels and addon terminal upgrade panels.
 - Fixed JEI pattern transfers being hidden by a client-side menu validity check while retaining server-side permission and recipe validation.
-- Preserved legacy assembler block IDs and saved data. Universal variants remain available through commands only.
+- Removed the old multi-block assemblers and their models. Existing large assemblers are not migrated; current single-block normal and Extended assemblers retain their saved data. Single-block universal variants remain available through commands only.
 
 ## 1.21.1-19.0.2
 - Switched the Minecraft 1.21.1 dependency to the official TaCZ 1.2.0 NeoForge release.

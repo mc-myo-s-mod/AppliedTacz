@@ -1,5 +1,6 @@
 package me.myogoo.appliedtacz.client;
 
+import appeng.core.definitions.AEItems;
 import me.myogoo.appliedtacz.client.renderer.AssemblerWorkbenchBadge;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,6 +22,7 @@ public final class AETaCZItemDecorators {
     }
 
     public static void register(RegisterItemDecorationsEvent event) {
+        event.register(AEItems.PROCESSING_PATTERN.asItem(), AssemblerWorkbenchBadge::render);
         event.register(AETaCZBlock.GUN_SMITH_TABLE.get(), WORKBENCH_BADGE);
         event.register(AETaCZBlock.AMMO_ASSEMBLY_TABLE.get(), WORKBENCH_BADGE);
         event.register(AETaCZBlock.ATTACHMENT_TABLE.get(), WORKBENCH_BADGE);
@@ -30,9 +32,6 @@ public final class AETaCZItemDecorators {
         event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
         event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
         event.register(AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
-        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_GUN.get(), AssemblerWorkbenchBadge::render);
-        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_AMMO.get(), AssemblerWorkbenchBadge::render);
-        event.register(AETaCZBlock.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), AssemblerWorkbenchBadge::render);
     }
 
     private static final class InterfaceBadgeDecorator implements IItemDecorator {
@@ -41,10 +40,14 @@ public final class AETaCZItemDecorators {
             int badgeX = xOffset + 8;
             int badgeY = yOffset + 8;
 
+            graphics.flush();
             graphics.pose().pushPose();
-            graphics.pose().translate(0.0F, 0.0F, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10.0F);
-            graphics.blit(INTERFACE_BADGE, badgeX, badgeY, BADGE_SIZE, BADGE_SIZE, 0, 0, 16, 16, 16, 16);
-            graphics.pose().popPose();
+            try {
+                graphics.pose().translate(0.0F, 0.0F, ItemRenderer.ITEM_COUNT_BLIT_OFFSET + 10.0F);
+                graphics.blit(INTERFACE_BADGE, badgeX, badgeY, BADGE_SIZE, BADGE_SIZE, 0, 0, 16, 16, 16, 16);
+            } finally {
+                graphics.pose().popPose();
+            }
             return false;
         }
     }

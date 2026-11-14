@@ -5,6 +5,7 @@ import appeng.menu.AEBaseMenu;
 import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.UpgradeInventories;
 import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
@@ -41,18 +42,11 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
     });
 
     private final @Nullable AEMolecularAssemblerBlockEntity blockEntity;
+    private final IUpgradeInventory upgrades;
     private final Container preview = new SimpleContainer(1);
 
-    @GuiSync(0)
-    public boolean networkPowered;
-    @GuiSync(1)
-    public boolean networkOnline;
-    @GuiSync(2)
-    public boolean gridBooted;
     @GuiSync(3)
     public String workbenchId = "";
-    @GuiSync(4)
-    public boolean crafting;
 
     public AEMolecularAssemblerMenu(int id, Inventory inventory,
             @Nullable AEMolecularAssemblerBlockEntity blockEntity) {
@@ -85,10 +79,11 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
                 }
             }.setStackLimit(1), SlotSemantics.ENCODED_PATTERN);
         }
-        setupUpgrades(blockEntity == null
+        this.upgrades = blockEntity == null
                 ? UpgradeInventories.forMachine(AEBlocks.MOLECULAR_ASSEMBLER,
                         AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS, () -> {})
-                : blockEntity.getUpgrades());
+                : blockEntity.getUpgrades();
+        setupUpgrades(this.upgrades);
         createPlayerInventorySlots(inventory);
         updateState();
         updatePreview();
@@ -133,15 +128,15 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
         return preview.getItem(0).copy();
     }
 
+    public IUpgradeInventory getUpgrades() {
+        return this.upgrades;
+    }
+
     public boolean isExtended() {
         return blockEntity != null && blockEntity.isExtended();
     }
 
     private void updateState() {
-        networkPowered = blockEntity != null && blockEntity.isNetworkPowered();
-        networkOnline = blockEntity != null && blockEntity.isNetworkOnline();
-        gridBooted = blockEntity != null && blockEntity.hasBootedGrid();
-        crafting = blockEntity != null && blockEntity.isCrafting();
         workbenchId = getWorkbenchId(blockEntity);
     }
 
@@ -161,7 +156,7 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
         return level != null
                 && level.hasChunkAt(pos)
                 && level.getBlockEntity(pos) == blockEntity
-                && blockEntity.getRootAssembler() == blockEntity
+                && blockEntity.isValidMenuRoot()
                 && Platform.hasPermissions(new DimensionalBlockPos(blockEntity), player)
                 && player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) <= 64.0;
     }

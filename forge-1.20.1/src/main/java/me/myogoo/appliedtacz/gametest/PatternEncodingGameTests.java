@@ -26,9 +26,11 @@ import com.tacz.guns.resource.index.CommonBlockIndex;
 import com.tacz.guns.resource.pojo.data.block.BlockData;
 import me.myogoo.appliedtacz.AppliedTaCZ;
 import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
+import me.myogoo.appliedtacz.client.TaCZPatternTooltips;
 import me.myogoo.appliedtacz.crafting.AssemblerRecipeMatcher;
 import me.myogoo.appliedtacz.crafting.PatternEncodingInputs;
 import me.myogoo.appliedtacz.crafting.TaCZPatternEncodingRecipes;
+import me.myogoo.appliedtacz.crafting.TaCZPatternMetadata;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
 import me.myogoo.appliedtacz.menu.TaCZPatternEncodingMenu;
 import me.myogoo.appliedtacz.parts.TaCZPatternEncodingPart;
@@ -37,6 +39,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.network.FriendlyByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.resources.ResourceLocation;
@@ -178,17 +182,24 @@ public final class PatternEncodingGameTests {
                     && terminal.getEncodedPatternInventory().getStackInSlot(0).is(Items.DIRT),
                     "Expected occupied output to reject without deleting or consuming items");
             terminal.getEncodedPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+            menu.selectRecipe(selected);
             menu.encode();
             helper.assertTrue(terminal.getBlankPatternInventory().getStackInSlot(0).getCount() == 2,
                     "Expected exactly one blank pattern consumed");
             ItemStack encoded = terminal.getEncodedPatternInventory().getStackInSlot(0).copy();
             var details = PatternDetailsHelper.decodePattern(encoded, helper.getLevel());
             helper.assertTrue(details != null, "Expected encoded AE2 processing pattern");
+            helper.assertTrue(ResourceLocation.tryParse(menu.workbenchId).equals(TaCZPatternMetadata.getWorkbenchId(encoded))
+                    && player.getGameProfile().getName().equals(TaCZPatternMetadata.getEncodedBy(encoded)),
+                    "Expected the selected workbench and server player name in the pattern metadata");
+            helper.assertTrue(player.getGameProfile().getName().equals(encoded.getOrCreateTag().getString("encodePlayer")),
+                    "Expected ExtendedAE Plus encoder metadata to use the trusted server name");
             verifyPatternRestoration(helper, menu, terminal, encoded);
+            verifyPatternMetadataAndOverwrite(helper, menu, terminal, encoded);
             menu.encode();
             helper.assertTrue(terminal.getBlankPatternInventory().getStackInSlot(0).getCount() == 2
                     && ItemStack.matches(encoded, terminal.getEncodedPatternInventory().getStackInSlot(0)),
-                    "Expected repeated action not to overwrite or duplicate output");
+                    "Expected repeated overwrite to preserve one pattern without consuming another blank");
 
             KeyCounter input = new KeyCounter();
             for (var requirement : details.getInputs()) {
@@ -196,6 +207,7 @@ public final class PatternEncodingGameTests {
                 input.add(choice.what(), choice.amount() * requirement.getMultiplier());
             }
             var assembler = (AEMolecularAssemblerBlockEntity) helper.getBlockEntity(ASSEMBLER);
+            assembler.setId(TaCZPatternMetadata.getWorkbenchId(encoded));
             assembler.getPatternInventory().setItemDirect(0, encoded.copy());
             helper.assertTrue(assembler.pushPattern(details, new KeyCounter[] {input}) && input.isEmpty(),
                     "Expected existing assembler to accept terminal-created pattern");
@@ -301,8 +313,8 @@ public final class PatternEncodingGameTests {
                 && !menu.recipeId.isEmpty(), "Expected shift insertion to prioritize the pattern slot and restore selection");
         menu.encode();
         helper.assertTrue(ItemStack.matches(blanks, terminal.getBlankPatternInventory().getStackInSlot(0))
-                && ItemStack.matches(encoded, outputSlot.getItem()) && !menu.canEncode(),
-                "Expected viewing and occupied-slot encoding to preserve all real items");
+                && ItemStack.matches(encoded, outputSlot.getItem()) && menu.canEncode(),
+                "Expected same-recipe overwrite to preserve all real items and remain available");
 
         var pattern = (AEProcessingPattern) PatternDetailsHelper.decodePattern(encoded, helper.getLevel());
         var inputs = new ArrayList<>(Arrays.asList(pattern.getSparseInputs()));
@@ -334,6 +346,110 @@ public final class PatternEncodingGameTests {
         terminal.getEncodedPatternInventory().setItemDirect(0, encoded.copy());
         menu.broadcastChanges();
         helper.assertTrue(!menu.recipeId.isEmpty(), "Expected valid pattern to restore after rejected patterns");
+    }
+
+    private static void verifyPatternMetadataAndOverwrite(GameTestHelper helper, TaCZPatternEncodingMenu menu,
+                                                          TaCZPatternEncodingPart terminal, ItemStack encoded) {
+        var inventory = terminal.getEncodedPatternInventory();
+        ItemStack blanks = terminal.getBlankPatternInventory().getStackInSlot(0).copy();
+        String workbench = menu.workbenchId;
+        String recipe = menu.recipeId;
+        List<Component> tooltip = new ArrayList<>();
+        TaCZPatternTooltips.append(encoded, tooltip);
+        helper.assertTrue(tooltip.size() == 1
+                && tooltip.get(0).getContents() instanceof TranslatableContents author
+                && author.getKey().equals("tooltip.appliedtacz.pattern.encoded_by")
+                && java.util.Arrays.equals(author.getArgs(), new Object[] {menu.getPlayer().getGameProfile().getName()}),
+                "Expected the fallback tooltip to contain the trusted encoder name");
+        TaCZPatternTooltips.append(encoded, tooltip);
+        helper.assertTrue(tooltip.size() == 1, "Expected the fallback tooltip not to duplicate itself");
+        Component extendedAuthor = Component.translatable("extendedae_plus.pattern.hovertext.player",
+                menu.getPlayer().getGameProfile().getName());
+        tooltip = new ArrayList<>(List.of(extendedAuthor));
+        TaCZPatternTooltips.append(encoded, tooltip);
+        helper.assertTrue(tooltip.size() == 1 && tooltip.get(0) == extendedAuthor,
+                "Expected an existing ExtendedAE Plus author line to suppress the fallback tooltip");
+        var pattern = (AEProcessingPattern) PatternDetailsHelper.decodePattern(encoded, helper.getLevel());
+        ItemStack legacy = PatternDetailsHelper.encodeProcessingPattern(pattern.getSparseInputs(), pattern.getSparseOutputs());
+        ItemStack unchanged = legacy.copy();
+        helper.assertTrue(!TaCZPatternMetadata.hasWorkbenchId(legacy)
+                && TaCZPatternMetadata.getWorkbenchId(legacy) == null
+                && TaCZPatternMetadata.getEncodedBy(legacy) == null && ItemStack.matches(legacy, unchanged),
+                "Expected metadata reads not to mutate legacy patterns");
+        inventory.setItemDirect(0, legacy);
+        menu.broadcastChanges();
+        helper.assertTrue(!menu.recipeId.isEmpty(), "Expected legacy patterns to retain recipe-based restoration");
+        terminal.getBlankPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+        menu.encode();
+        helper.assertTrue(ItemStack.matches(encoded, inventory.getStackInSlot(0))
+                && terminal.getBlankPatternInventory().getStackInSlot(0).isEmpty() && menu.canEncode(),
+                "Expected metadata-free pattern overwrite without any blank pattern");
+
+        var replacement = TaCZPatternEncodingRecipes.getRecipes(helper.getLevel(), ResourceLocation.tryParse(workbench))
+                .stream().filter(entry -> !entry.id().toString().equals(recipe)
+                        && PatternEncodingInputs.isEncodable(entry.recipe())
+                        && !AssemblerRecipeMatcher.outputsMatch(
+                                entry.recipe().getResultItem(helper.getLevel().registryAccess()),
+                                java.util.Arrays.asList(pattern.getOutputs()))).findFirst().orElseThrow();
+        terminal.getBlankPatternInventory().setItemDirect(0, blanks.copy());
+        menu.selectRecipe(workbench, replacement.id().toString());
+        List<AEItemKey> replacementChoices = java.util.Arrays.stream(menu.getIngredientSlots())
+                .map(slot -> GenericStack.fromItemStack(slot.getItem())).filter(java.util.Objects::nonNull)
+                .map(stack -> (AEItemKey) stack.what()).toList();
+        ItemStack expectedReplacement = TaCZPatternEncodingRecipes.encode(helper.getLevel(),
+                replacement.recipe(), replacementChoices);
+        TaCZPatternMetadata.set(expectedReplacement, ResourceLocation.tryParse(workbench), menu.getPlayer());
+        menu.encode();
+        helper.assertTrue(inventory.getStackInSlot(0).getCount() == 1
+                && ItemStack.matches(expectedReplacement, inventory.getStackInSlot(0))
+                && !ItemStack.matches(encoded, inventory.getStackInSlot(0))
+                && ItemStack.matches(blanks, terminal.getBlankPatternInventory().getStackInSlot(0)),
+                "Expected changed-recipe overwrite to replace exact inputs/output and metadata without consuming blanks");
+        inventory.setItemDirect(0, encoded.copy());
+        menu.broadcastChanges();
+        inventory.setItemDirect(0, expectedReplacement.copy());
+        menu.encode();
+        helper.assertTrue(ItemStack.matches(expectedReplacement, inventory.getStackInSlot(0))
+                && ItemStack.matches(blanks, terminal.getBlankPatternInventory().getStackInSlot(0))
+                && menu.recipeId.equals(replacement.id().toString()),
+                "Expected an externally replaced output to refresh stale selection without overwriting or consuming blanks");
+        menu.selectRecipe(workbench, recipe);
+        menu.encode();
+        helper.assertTrue(ItemStack.matches(encoded, inventory.getStackInSlot(0))
+                && ItemStack.matches(blanks, terminal.getBlankPatternInventory().getStackInSlot(0)),
+                "Expected a fresh selection after output replacement to allow deliberate overwrite");
+        terminal.getBlankPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+        menu.broadcastChanges();
+
+        ItemStack stacked = encoded.copyWithCount(2);
+        inventory.setItemDirect(0, stacked);
+        menu.encode();
+        helper.assertTrue(ItemStack.matches(stacked, inventory.getStackInSlot(0))
+                && terminal.getBlankPatternInventory().getStackInSlot(0).isEmpty() && !menu.canEncode(),
+                "Expected an illegal stacked output to reject without losing either pattern");
+
+        for (String value : List.of("not a resource id", "appliedtacz:missing_workbench")) {
+            ItemStack malformed = encoded.copy();
+            malformed.getOrCreateTag().getCompound("appliedtacz:pattern").putString("workbench", value);
+            helper.assertTrue(TaCZPatternMetadata.hasWorkbenchId(malformed),
+                    "Expected explicit invalid workbench metadata to remain distinguishable from legacy patterns");
+            inventory.setItemDirect(0, malformed);
+            menu.encode();
+            helper.assertTrue(menu.recipeId.isEmpty() && !menu.canEncode()
+                    && ItemStack.matches(malformed, inventory.getStackInSlot(0))
+                    && terminal.getBlankPatternInventory().getStackInSlot(0).isEmpty(),
+                    "Expected externally replaced malformed or missing workbench to reject stale encoding without fallback");
+        }
+        inventory.setItemDirect(0, encoded.copy());
+        menu.broadcastChanges();
+        menu.recipeId = "appliedtacz:missing_recipe";
+        menu.encode();
+        helper.assertTrue(ItemStack.matches(encoded, inventory.getStackInSlot(0))
+                && terminal.getBlankPatternInventory().getStackInSlot(0).isEmpty(),
+                "Expected stale recipe selection to reject overwrite");
+        menu.selectRecipe(workbench, recipe);
+        terminal.getBlankPatternInventory().setItemDirect(0, blanks);
+        menu.broadcastChanges();
     }
 
     private static void verifyWorkbenchTransfers(GameTestHelper helper, TaCZPatternEncodingMenu menu,
@@ -383,6 +499,28 @@ public final class PatternEncodingGameTests {
                 }
             }
 
+            List<AEItemKey> choices = java.util.Arrays.stream(menu.getIngredientSlots())
+                    .map(slot -> GenericStack.fromItemStack(slot.getItem())).filter(java.util.Objects::nonNull)
+                    .map(stack -> (AEItemKey) stack.what()).toList();
+            ItemStack overlappingPattern = TaCZPatternEncodingRecipes.encode(helper.getLevel(), recipe.recipe(), choices);
+            TaCZPatternMetadata.set(overlappingPattern, target.getKey(), menu.getPlayer());
+            terminal.getEncodedPatternInventory().setItemDirect(0, overlappingPattern);
+            menu.selectRecipe(source.getKey().toString(), recipe.id().toString());
+            helper.assertTrue(menu.workbenchId.equals(target.getKey().toString()),
+                    "Expected inserted metadata to restore its exact workbench despite an overlapping selected recipe");
+            var reopened = new TaCZPatternEncodingMenu(10, menu.getPlayerInventory(), terminal);
+            helper.assertTrue(reopened.workbenchId.equals(target.getKey().toString()),
+                    "Expected reopening to restore the encoded workbench rather than the first matching workbench");
+            ItemStack preservedBlanks = terminal.getBlankPatternInventory().getStackInSlot(0).copy();
+            terminal.getBlankPatternInventory().setItemDirect(0, ItemStack.EMPTY);
+            menu.selectRecipe(source.getKey().toString(), recipe.id().toString());
+            menu.encode();
+            helper.assertTrue(source.getKey().equals(TaCZPatternMetadata.getWorkbenchId(
+                    terminal.getEncodedPatternInventory().getStackInSlot(0)))
+                    && terminal.getBlankPatternInventory().getStackInSlot(0).isEmpty(),
+                    "Expected changing workbench and re-encoding to replace metadata without needing a blank");
+            terminal.getEncodedPatternInventory().setItemDirect(0, originalOutput.copy());
+            terminal.getBlankPatternInventory().setItemDirect(0, preservedBlanks);
             menu.selectRecipe(source.getKey().toString(), recipe.id().toString());
             revision = menu.selectionRevision;
             receiveSelection(menu, gson.toJson(new TaCZPatternEncodingMenu.RecipeSelection(
@@ -450,6 +588,7 @@ public final class PatternEncodingGameTests {
                 }
             };
             String deniedWorkbench = deniedMenu.workbenchId;
+            deniedMenu.encode();
             receiveSelection(deniedMenu, gson.toJson(new TaCZPatternEncodingMenu.RecipeSelection(
                     source.getKey().toString(), recipe.id().toString())));
             helper.assertTrue(deniedMenu.workbenchId.equals(deniedWorkbench) && deniedMenu.recipeId.isEmpty()

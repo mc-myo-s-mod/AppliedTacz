@@ -30,10 +30,6 @@ public final class ModBlockEntities {
                     ModBlocks.EXTENDED_TACZ_ASSEMBLER_AMMO.get(),
                     ModBlocks.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get(),
                     ModBlocks.EXTENDED_TACZ_ASSEMBLER_GUN.get(),
-                    ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get(),
-                    ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get(),
-                    ModBlocks.MOLECULAR_ASSEMBLER_GUN.get(),
-                    ModBlocks.MOLECULAR_ASSEMBLER_UNIVERSAL.get(),
                     ModBlocks.MOLECULAR_ASSEMBLER.get()
             ).build(null));
 

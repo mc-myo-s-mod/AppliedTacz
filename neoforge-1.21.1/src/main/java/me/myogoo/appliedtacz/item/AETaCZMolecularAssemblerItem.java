@@ -18,7 +18,7 @@ public class AETaCZMolecularAssemblerItem extends BlockItem implements BlockItem
     private final @Nullable ResourceLocation defaultBlockId;
 
     public AETaCZMolecularAssemblerItem(Block block, @Nullable ResourceLocation defaultBlockId) {
-        super(block, new Item.Properties().stacksTo(1));
+        super(block, new Item.Properties().stacksTo(64));
         this.defaultBlockId = defaultBlockId;
     }
 

@@ -9,6 +9,7 @@ import appeng.api.implementations.blockentities.PatternContainerGroup;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IGridNodeListener;
 import appeng.api.networking.IManagedGridNode;
@@ -28,6 +29,7 @@ import appeng.blockentity.AEBaseBlockEntity;
 import appeng.capabilities.Capabilities;
 import appeng.core.definitions.AEItems;
 import appeng.crafting.pattern.AEProcessingPattern;
+import appeng.helpers.patternprovider.PatternContainer;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import appeng.me.helpers.MachineSource;
@@ -36,6 +38,7 @@ import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.tacz.guns.api.TimelessAPI;
+import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.api.item.nbt.BlockItemDataAccessor;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
@@ -43,6 +46,8 @@ import com.tacz.guns.init.ModRecipe;
 import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
 import me.myogoo.appliedtacz.crafting.AssemblerRecipeMatcher;
 import me.myogoo.appliedtacz.crafting.AssemblerCraftingSpeed;
+import me.myogoo.appliedtacz.crafting.TaCZPatternEncodingRecipes;
+import me.myogoo.appliedtacz.crafting.TaCZPatternMetadata;
 import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import me.myogoo.appliedtacz.init.AETaCZBlockEntity;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
@@ -58,7 +63,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -72,7 +76,8 @@ import java.util.List;
 import java.util.Set;
 
 public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
-        implements IGridConnectedBlockEntity, IGridTickable, ICraftingProvider, InternalInventoryHost, IUpgradeableObject {
+        implements IGridConnectedBlockEntity, IGridTickable, ICraftingProvider, InternalInventoryHost, IUpgradeableObject,
+        PatternContainer {
     public static final int PATTERN_SLOTS = 9;
     public static final int UPGRADE_SLOTS = 5;
     private static final String JOBS_TAG = "Jobs";
@@ -96,7 +101,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
             new IAEItemFilter() {
                 @Override
                 public boolean allowInsert(InternalInventory inv, int slot, ItemStack stack) {
-                    return stack.is(AEItems.PROCESSING_PATTERN.asItem()) && PatternDetailsHelper.isEncodedPattern(stack);
+                    return acceptsPattern(stack);
                 }
             });
     private final MachineSource actionSource = new MachineSource(this);
@@ -106,22 +111,19 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     private final LazyOptional<ICraftingMachine> craftingMachine = LazyOptional.of(() -> new ICraftingMachine() {
         @Override
         public PatternContainerGroup getCraftingMachineInfo() {
-            AEMolecularAssemblerBlockEntity root = getRootAssembler();
-            return root != null ? root.machineInfo() : PatternContainerGroup.nothing();
+            return machineInfo();
         }
 
         @Override
         public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputs, Direction ejectionDirection) {
-            AEMolecularAssemblerBlockEntity root = getRootAssembler();
-            return root != null && ejectionDirection != null
-                    && root.acceptPattern(patternDetails, inputs, worldPosition.relative(ejectionDirection),
+            return ejectionDirection != null
+                    && acceptPattern(patternDetails, inputs, worldPosition.relative(ejectionDirection),
                             ejectionDirection.getOpposite());
         }
 
         @Override
         public boolean acceptsPlans() {
-            AEMolecularAssemblerBlockEntity root = getRootAssembler();
-            return root != null && root.canAcceptPlans();
+            return canAcceptPlans();
         }
     });
 
@@ -157,22 +159,22 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     @Override
     public IManagedGridNode getMainNode() {
-        return getEffectiveMainNode();
+        return this.mainNode;
     }
 
     @Override
     public @Nullable IGridNode getGridNode() {
-        return getEffectiveMainNode().getNode();
+        return this.mainNode.getNode();
     }
 
     @Override
     public @Nullable IGridNode getGridNode(@Nullable Direction dir) {
-        return canExposeNodeOnSide(dir) ? getEffectiveMainNode().getNode() : null;
+        return canExposeNodeOnSide(dir) ? this.mainNode.getNode() : null;
     }
 
     @Override
     public @Nullable IGridNode getActionableNode() {
-        return getEffectiveMainNode().getNode();
+        return this.mainNode.getNode();
     }
 
     @Override
@@ -249,14 +251,13 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     @Override
     protected void writeToStream(FriendlyByteBuf data) {
-        IManagedGridNode effectiveNode = getEffectiveMainNode();
         data.writeBoolean(this.id != null);
         if (this.id != null) {
             data.writeResourceLocation(this.id);
         }
-        data.writeBoolean(effectiveNode.isPowered());
-        data.writeBoolean(effectiveNode.isOnline());
-        data.writeBoolean(effectiveNode.hasGridBooted());
+        data.writeBoolean(this.mainNode.isPowered());
+        data.writeBoolean(this.mainNode.isOnline());
+        data.writeBoolean(this.mainNode.hasGridBooted());
         data.writeBoolean(isCrafting());
     }
 
@@ -282,34 +283,26 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     @Override
     public void onReady() {
         super.onReady();
-        if (isRootPart()) {
-            this.mainNode.create(this.level, this.worldPosition);
-            updatePatterns();
-        }
+        this.mainNode.create(this.level, this.worldPosition);
+        updatePatterns();
     }
 
     @Override
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
-        if (isRootPart()) {
-            this.mainNode.destroy();
-        }
+        this.mainNode.destroy();
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
-        if (isRootPart()) {
-            this.mainNode.destroy();
-        }
+        this.mainNode.destroy();
     }
 
     @Override
     public void clearRemoved() {
         super.clearRemoved();
-        if (isRootPart()) {
-            scheduleInit();
-        }
+        scheduleInit();
     }
 
     @Override
@@ -335,9 +328,6 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
         }
         if (!this.mainNode.isActive()) {
             return TickRateModulation.SLEEP;
-        }
-        if (!isWholeStructureLoaded()) {
-            return TickRateModulation.SLOWER;
         }
         for (var iterator = this.jobs.iterator(); iterator.hasNext();) {
             CraftJob job = iterator.next();
@@ -422,6 +412,43 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     @Override
+    public @Nullable IGrid getGrid() {
+        return this.mainNode.getGrid();
+    }
+
+    @Override
+    public InternalInventory getTerminalPatternInventory() {
+        return this.patternInventory;
+    }
+
+    @Override
+    public long getTerminalSortOrder() {
+        return this.worldPosition.asLong();
+    }
+
+    @Override
+    public PatternContainerGroup getTerminalGroup() {
+        return machineInfo();
+    }
+
+    public boolean acceptsPattern(ItemStack stack) {
+        if (this.level == null || !stack.is(AEItems.PROCESSING_PATTERN.asItem())) {
+            return false;
+        }
+        IPatternDetails details = PatternDetailsHelper.decodePattern(stack, this.level);
+        if (!(details instanceof AEProcessingPattern processing)) {
+            return false;
+        }
+        KeyCounter[] inputs = new KeyCounter[] { new KeyCounter() };
+        for (GenericStack input : processing.getSparseInputs()) {
+            if (input != null) {
+                inputs[0].add(input.what(), input.amount());
+            }
+        }
+        return findRecipe(details, inputs) != null;
+    }
+
+    @Override
     public IUpgradeInventory getUpgrades() {
         return this.upgrades;
     }
@@ -435,13 +462,9 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     public boolean isCrafting() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        if (root != null && root != this) {
-            return root.isCrafting();
-        }
-        return isWholeStructureLoaded() && (isClientSide()
+        return isClientSide()
                 ? this.clientCrafting && this.clientNetworkPowered && this.clientNetworkOnline
-                : this.jobs.stream().anyMatch(job -> job.remainingTicks > 0) && this.mainNode.isActive());
+                : this.jobs.stream().anyMatch(job -> job.remainingTicks > 0) && this.mainNode.isActive();
     }
 
     @Override
@@ -474,7 +497,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     @Override
     public List<IPatternDetails> getAvailablePatterns() {
-        return isRootPart() ? this.patterns : List.of();
+        return this.patterns;
     }
 
     @Override
@@ -490,19 +513,19 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     public boolean isNetworkPowered() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientNetworkPowered
-                : getEffectiveMainNode().isPowered();
+                : this.mainNode.isPowered();
     }
 
     public boolean isNetworkOnline() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientNetworkOnline
-                : getEffectiveMainNode().isOnline();
+                : this.mainNode.isOnline();
     }
 
     public boolean hasBootedGrid() {
         return this.level != null && this.level.isClientSide()
                 ? this.clientGridBooted
-                : getEffectiveMainNode().hasGridBooted();
+                : this.mainNode.hasGridBooted();
     }
 
     public ItemStack getPendingOutput() {
@@ -516,18 +539,13 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     public @Nullable AEMolecularAssemblerBlockEntity getMenuRootAssembler() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        BlockState state = getBlockState();
-        return root != null && root.getBlockState().is(state.getBlock())
-                && root.getBlockState().getValue(MolecularAssemblerBlock.FACING)
-                        == state.getValue(MolecularAssemblerBlock.FACING)
-                && root.isValidMenuRoot() ? root : null;
+        return isValidMenuRoot() ? this : null;
     }
 
     public boolean isValidMenuRoot() {
         Level level = getLevel();
-        return level != null && isRootPart() && level.hasChunkAt(this.worldPosition)
-                && level.getBlockEntity(this.worldPosition) == this && isWholeStructureLoaded();
+        return level != null && level.hasChunkAt(this.worldPosition)
+                && level.getBlockEntity(this.worldPosition) == this && !isRemoved();
     }
 
     public boolean mayOpenMenu(Player player) {
@@ -535,12 +553,30 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     private PatternContainerGroup machineInfo() {
-        return new PatternContainerGroup(AEItemKey.of(getBlockState().getBlock()), getDisplayName(), List.of());
+        ItemStack icon = createDropStack();
+        Component name = getDisplayName();
+        if (getBlockState().getBlock() instanceof MolecularAssemblerBlock block && !block.isUniversal()) {
+            ResourceLocation workbenchId = getEffectiveBlockId();
+            Component workbenchName = DefaultAssets.DEFAULT_BLOCK_ID.equals(workbenchId)
+                    ? Component.translatable("gui.appliedtacz.assembler.workbench.gun")
+                    : workbenchId.equals(ResourceLocation.fromNamespaceAndPath("tacz", "ammo_workbench"))
+                            ? Component.translatable("gui.appliedtacz.assembler.workbench.ammo")
+                            : workbenchId.equals(ResourceLocation.fromNamespaceAndPath("tacz", "attachment_workbench"))
+                                    ? Component.translatable("gui.appliedtacz.assembler.workbench.attachment")
+                                    : TimelessAPI.getCommonBlockIndex(workbenchId)
+                                            .map(index -> index.getPojo()).map(pojo -> pojo.getName())
+                                            .map(Component::translatable)
+                                            .orElseGet(() -> Component.translatable(
+                                                    "gui.appliedtacz.assembler.workbench_name"));
+            name = Component.translatable(block.isExtended() ? "gui.appliedtacz.assembler.extended_title"
+                    : "gui.appliedtacz.assembler.title", workbenchName);
+        }
+        return new PatternContainerGroup(AEItemKey.of(icon), name, List.of());
     }
 
     private boolean acceptPattern(IPatternDetails patternDetails, KeyCounter[] inputs, @Nullable BlockPos returnPos,
             @Nullable Direction returnFace) {
-        if (!isRootPart() || !patternDetails.supportsPushInputsToExternalInventory() || this.level == null
+        if (!patternDetails.supportsPushInputsToExternalInventory() || this.level == null
                 || this.level.isClientSide || !canAcceptPlans()) {
             return false;
         }
@@ -562,10 +598,20 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
         if (this.level == null) {
             return null;
         }
+        ItemStack encoded = patternDetails.getDefinition().toStack();
+        ResourceLocation workbenchId = TaCZPatternMetadata.getWorkbenchId(encoded);
+        if (TaCZPatternMetadata.hasWorkbenchId(encoded)
+                && (workbenchId == null || !(getBlockState().getBlock() instanceof MolecularAssemblerBlock block
+                        && block.isUniversal()) && !workbenchId.equals(getEffectiveBlockId()))) {
+            return null;
+        }
         for (GunSmithTableRecipe recipe : this.level.getRecipeManager()
                 .getAllRecipesFor(ModRecipe.GUN_SMITH_TABLE_CRAFTING.get())) {
             ItemStack output = recipe.getResultItem(this.level.registryAccess());
-            if (isRecipeAllowed(recipe) && AssemblerRecipeMatcher.outputsMatch(output, Arrays.asList(patternDetails.getOutputs()))
+            if (isRecipeAllowed(recipe)
+                    && (workbenchId == null || TaCZPatternEncodingRecipes.isAllowed(workbenchId,
+                            new TaCZPatternEncodingRecipes.Entry(recipe.getId(), recipe)))
+                    && AssemblerRecipeMatcher.outputsMatch(output, Arrays.asList(patternDetails.getOutputs()))
                     && AssemblerRecipeMatcher.matches(recipe, inputs)) {
                 return recipe;
             }
@@ -654,10 +700,9 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     private void syncNetworkState() {
-        IManagedGridNode effectiveNode = getEffectiveMainNode();
-        boolean networkPowered = effectiveNode.isPowered();
-        boolean networkOnline = effectiveNode.isOnline();
-        boolean gridBooted = effectiveNode.hasGridBooted();
+        boolean networkPowered = this.mainNode.isPowered();
+        boolean networkOnline = this.mainNode.isOnline();
+        boolean gridBooted = this.mainNode.hasGridBooted();
         if (networkPowered == this.clientNetworkPowered
                 && networkOnline == this.clientNetworkOnline
                 && gridBooted == this.clientGridBooted) {
@@ -669,24 +714,17 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
         this.markForUpdate();
     }
 
-    private boolean isRootPart() {
-        BlockState state = getBlockState();
-        return state.getBlock() instanceof MolecularAssemblerBlock block && block.isValidPart(state) && block.isRoot(state);
-    }
-
     private boolean canExposeNodeOnSide(@Nullable Direction dir) {
-        return dir != null && (dir != Direction.UP
-                || getBlockState().getBlock() instanceof MolecularAssemblerBlock block && block.partCount() == 1)
-                && !isInternalMultiblockFace(dir);
+        return dir != null;
     }
 
     private boolean canExposeCraftingOnSide(@Nullable Direction dir) {
-        return canExposeNodeOnSide(dir) && getRootAssembler() != null;
+        return dir != null;
     }
 
     private boolean canAcceptPlans() {
         return this.jobs.size() < (isExtended() ? 8 : 1)
-                && this.mainNode.isActive() && isWholeStructureLoaded();
+                && this.mainNode.isActive();
     }
 
     private static final class CraftJob {
@@ -704,67 +742,5 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
             this.returnFace = returnFace;
             this.internalOutput = internalOutput;
         }
-    }
-
-    private boolean isInternalMultiblockFace(Direction dir) {
-        Level level = getLevel();
-        BlockState state = getBlockState();
-        if (level == null || !(state.getBlock() instanceof MolecularAssemblerBlock block) || !block.isValidPart(state)) {
-            return false;
-        }
-        BlockPos adjacentPos = getBlockPos().relative(dir);
-        if (!level.hasChunkAt(adjacentPos)) {
-            return false;
-        }
-        BlockState adjacentState = level.getBlockState(adjacentPos);
-        if (!(adjacentState.getBlock() instanceof MolecularAssemblerBlock adjacentBlock) || adjacentBlock != block
-                || !adjacentBlock.isValidPart(adjacentState)) {
-            return false;
-        }
-        return block.getRootPos(getBlockPos(), state).equals(adjacentBlock.getRootPos(adjacentPos, adjacentState));
-    }
-
-    private IManagedGridNode getEffectiveMainNode() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        return root != null ? root.mainNode : mainNode;
-    }
-
-    private @Nullable AEMolecularAssemblerBlockEntity getRootAssembler() {
-        if (isRootPart()) {
-            return this;
-        }
-        Level level = getLevel();
-        BlockState state = getBlockState();
-        if (level == null || !(state.getBlock() instanceof MolecularAssemblerBlock block) || !block.isValidPart(state)) {
-            return null;
-        }
-        BlockPos rootPos = block.getRootPos(getBlockPos(), state);
-        if (!level.hasChunkAt(rootPos)) {
-            return null;
-        }
-        BlockEntity blockEntity = level.getBlockEntity(rootPos);
-        return blockEntity instanceof AEMolecularAssemblerBlockEntity assembler ? assembler : null;
-    }
-
-    private boolean isWholeStructureLoaded() {
-        Level level = getLevel();
-        BlockState state = getBlockState();
-        if (level == null || !(state.getBlock() instanceof MolecularAssemblerBlock block) || !block.isValidPart(state)) {
-            return false;
-        }
-        BlockPos root = block.getRootPos(getBlockPos(), state);
-        Direction facing = state.getValue(MolecularAssemblerBlock.FACING);
-        for (int part = 0; part < block.partCount(); part++) {
-            BlockPos partPos = block.partPos(root, facing, part);
-            if (!level.hasChunkAt(partPos)) {
-                return false;
-            }
-            BlockState partState = level.getBlockState(partPos);
-            if (!partState.is(state.getBlock()) || block.getPart(partState) != part
-                    || !block.getRootPos(partPos, partState).equals(root)) {
-                return false;
-            }
-        }
-        return true;
     }
 }

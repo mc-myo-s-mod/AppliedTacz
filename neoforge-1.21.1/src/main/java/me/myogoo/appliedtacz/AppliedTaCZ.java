@@ -19,7 +19,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -58,11 +57,13 @@ public class AppliedTaCZ {
             modEventBus.addListener(AppliedTaczClient::registerScreens);
             modEventBus.addListener(AppliedTaczClient::registerRenderers);
             modEventBus.addListener(AppliedTaczClient::registerItemDecorations);
+            modEventBus.addListener(AppliedTaczClient::registerItemColors);
+            modEventBus.addListener(AppliedTaczClient::registerGeometryLoaders);
         }
     }
 
     private void addCreativeTabItems(BuildCreativeModeTabContentsEvent event) {
-        if (CreativeModeTabs.FUNCTIONAL_BLOCKS.equals(event.getTabKey()) || TACZ_OTHER_TAB.equals(event.getTabKey())) {
+        if (TACZ_OTHER_TAB.equals(event.getTabKey())) {
             addWorkbenchItems(event);
         }
     }
@@ -77,20 +78,24 @@ public class AppliedTaCZ {
 
     private static void addWorkbenchItems(BuildCreativeModeTabContentsEvent event) {
         event.accept(ModItems.TACZ_PATTERN_ENCODING_TERMINAL.get());
-        event.accept(ModItems.TACZ_ASSEMBLER_AMMO.get());
-        event.accept(ModItems.TACZ_ASSEMBLER_ATTACHMENT.get());
-        event.accept(ModItems.TACZ_ASSEMBLER_GUN.get());
-        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_AMMO.get());
-        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get());
-        event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_GUN.get());
         var entries = AETaCZWorkbenchIndex.entries();
         if (entries.isEmpty()) {
+            event.accept(ModItems.TACZ_ASSEMBLER_AMMO.get());
+            event.accept(ModItems.TACZ_ASSEMBLER_ATTACHMENT.get());
+            event.accept(ModItems.TACZ_ASSEMBLER_GUN.get());
+            event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_AMMO.get());
+            event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get());
+            event.accept(ModItems.EXTENDED_TACZ_ASSEMBLER_GUN.get());
             event.accept(ModItems.GUN_SMITH_TABLE.get());
             event.accept(ModItems.ATTACHMENT_TABLE.get());
             event.accept(ModItems.AMMO_WORKBENCH.get());
             return;
         }
-        entries.forEach(entry -> event.accept(entry.createAppliedStack()));
+        entries.forEach(entry -> {
+            event.accept(entry.createAppliedStack());
+            event.accept(entry.createAssemblerStack());
+            event.accept(entry.createExtendedAssemblerStack());
+        });
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {

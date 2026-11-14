@@ -8,6 +8,7 @@ import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.implementations.blockentities.PatternContainerGroup;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.inventories.ItemTransfer;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.ICraftingProvider;
 import appeng.api.networking.ticking.IGridTickable;
@@ -19,16 +20,22 @@ import appeng.api.upgrades.IUpgradeInventory;
 import appeng.api.upgrades.IUpgradeableObject;
 import appeng.api.upgrades.UpgradeInventories;
 import appeng.core.definitions.AEItems;
+import appeng.crafting.pattern.AEProcessingPattern;
+import appeng.helpers.patternprovider.PatternContainer;
 import appeng.me.helpers.MachineSource;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 import appeng.util.inv.filter.IAEItemFilter;
 import com.tacz.guns.api.TimelessAPI;
+import com.tacz.guns.api.DefaultAssets;
+import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
 import com.tacz.guns.init.ModRecipe;
 import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
 import me.myogoo.appliedtacz.crafting.AssemblerRecipeMatcher;
 import me.myogoo.appliedtacz.crafting.AssemblerCraftingSpeed;
+import me.myogoo.appliedtacz.crafting.TaCZPatternEncodingRecipes;
+import me.myogoo.appliedtacz.crafting.TaCZPatternMetadata;
 import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import me.myogoo.appliedtacz.registry.ModBlockEntities;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
@@ -45,7 +52,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +59,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
-        implements ICraftingMachine, IGridTickable, ICraftingProvider, InternalInventoryHost, IUpgradeableObject {
+        implements ICraftingMachine, IGridTickable, ICraftingProvider, InternalInventoryHost, IUpgradeableObject,
+        PatternContainer {
     public static final int PATTERN_SLOTS = 9;
     public static final int UPGRADE_SLOTS = 5;
     private static final int MAX_SAVED_CRAFT_TICKS = 20;
@@ -70,7 +77,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
             new IAEItemFilter() {
                 @Override
                 public boolean allowInsert(InternalInventory inventory, int slot, ItemStack stack) {
-                    return stack.is(AEItems.PROCESSING_PATTERN.asItem());
+                    return acceptsPattern(stack);
                 }
             });
 
@@ -80,8 +87,51 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
         getMainNode().addService(ICraftingProvider.class, this);
     }
 
+    @Override
+    public void setId(@Nullable ResourceLocation id) {
+        super.setId(id);
+        ICraftingProvider.requestUpdate(getMainNode());
+    }
+
     public InternalInventory getPatternInventory() {
         return patterns;
+    }
+
+    @Override
+    public @Nullable IGrid getGrid() {
+        return getMainNode().getGrid();
+    }
+
+    @Override
+    public InternalInventory getTerminalPatternInventory() {
+        return patterns;
+    }
+
+    @Override
+    public long getTerminalSortOrder() {
+        return getBlockPos().asLong();
+    }
+
+    @Override
+    public PatternContainerGroup getTerminalGroup() {
+        return getCraftingMachineInfo();
+    }
+
+    public boolean acceptsPattern(ItemStack stack) {
+        if (level == null || !stack.is(AEItems.PROCESSING_PATTERN.asItem())) {
+            return false;
+        }
+        IPatternDetails details = PatternDetailsHelper.decodePattern(stack, level);
+        if (!(details instanceof AEProcessingPattern processing)) {
+            return false;
+        }
+        KeyCounter[] inputs = new KeyCounter[] { new KeyCounter() };
+        for (var input : processing.getSparseInputs()) {
+            if (input != null) {
+                inputs[0].add(input.what(), input.amount());
+            }
+        }
+        return findRecipe(details, inputs) != null;
     }
 
     @Override
@@ -105,7 +155,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     @Override
     public List<IPatternDetails> getAvailablePatterns() {
-        if (level == null || getBlockState().getValue(MolecularAssemblerBlock.PART) != 0) {
+        if (level == null) {
             return List.of();
         }
         List<IPatternDetails> available = new ArrayList<>();
@@ -152,47 +202,41 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
     public boolean isCrafting() {
         return level != null && level.isClientSide
                 ? clientCrafting && isNetworkPowered() && isNetworkOnline() && hasBootedGrid()
-                : jobs.stream().anyMatch(job -> job.remainingTicks > 0) && getMainNode().isActive()
-                        && getRootAssembler() == this;
+                : jobs.stream().anyMatch(job -> job.remainingTicks > 0) && getMainNode().isActive();
     }
 
     public @Nullable ICraftingMachine getCraftingMachine(@Nullable Direction side) {
-        Level level = getLevel();
-        BlockState state = getBlockState();
-        if (side == null
-                || level == null
-                || !(state.getBlock() instanceof MolecularAssemblerBlock block)
-                || side == Direction.UP && block.partCount() != 1
-                || !block.isValidPart(state)
-                || block.isInternalFace(state, getBlockPos(), level, side)
-                || getRootAssembler() == null) {
-            return null;
-        }
-        return this;
+        return side != null && isValidMenuRoot() ? this : null;
     }
 
     @Override
     public PatternContainerGroup getCraftingMachineInfo() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        ItemStack icon = new ItemStack((root != null ? root : this).getBlockState().getBlock());
-        return new PatternContainerGroup(AEItemKey.of(icon), icon.getHoverName(), List.of());
+        ItemStack icon = getBlockState().getBlock() instanceof MolecularAssemblerBlock block && !block.isUniversal()
+                ? BlockItemBuilder.create(block).setId(AETaCZWorkbenchIds.getMenuBlockId(this)).build()
+                : new ItemStack(getBlockState().getBlock());
+        Component name = getBlockState().getBlock().getName();
+        if (getBlockState().getBlock() instanceof MolecularAssemblerBlock block && !block.isUniversal()) {
+            ResourceLocation workbenchId = AETaCZWorkbenchIds.getMenuBlockId(this);
+            Component workbenchName = DefaultAssets.DEFAULT_BLOCK_ID.equals(workbenchId)
+                    ? Component.translatable("gui.appliedtacz.assembler.workbench.gun")
+                    : AETaCZWorkbenchIds.AMMO_WORKBENCH_ID.equals(workbenchId)
+                            ? Component.translatable("gui.appliedtacz.assembler.workbench.ammo")
+                            : AETaCZWorkbenchIds.ATTACHMENT_WORKBENCH_ID.equals(workbenchId)
+                                    ? Component.translatable("gui.appliedtacz.assembler.workbench.attachment")
+                                    : TimelessAPI.getCommonBlockIndex(workbenchId)
+                                            .map(index -> index.getPojo()).map(pojo -> pojo.getName())
+                                            .map(Component::translatable)
+                                            .orElseGet(() -> Component.translatable(
+                                                    "gui.appliedtacz.assembler.workbench_name"));
+            name = Component.translatable(block.isExtended() ? "gui.appliedtacz.assembler.extended_title"
+                    : "gui.appliedtacz.assembler.title", workbenchName);
+        }
+        return new PatternContainerGroup(AEItemKey.of(icon), name, List.of());
     }
 
     @Override
     public boolean pushPattern(IPatternDetails patternDetails, KeyCounter[] inputs, Direction ejectionDirection) {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        if (root == null) {
-            return false;
-        }
-        if (root != this) {
-            return root.pushPatternFrom(getBlockPos(), patternDetails, inputs, ejectionDirection);
-        }
-        return pushPatternFrom(getBlockPos(), patternDetails, inputs, ejectionDirection);
-    }
-
-    private boolean pushPatternFrom(BlockPos receivingPos, IPatternDetails patternDetails, KeyCounter[] inputs,
-            Direction ejectionDirection) {
-        return startCraft(patternDetails, inputs, receivingPos.relative(ejectionDirection),
+        return startCraft(patternDetails, inputs, getBlockPos().relative(ejectionDirection),
                 ejectionDirection.getOpposite());
     }
 
@@ -232,12 +276,21 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
         if (level == null || block == null || (!block.isUniversal() && kind == null)) {
             return null;
         }
+        ItemStack encoded = patternDetails.getDefinition().toStack();
+        ResourceLocation workbenchId = TaCZPatternMetadata.getWorkbenchId(encoded);
+        if (TaCZPatternMetadata.hasWorkbenchId(encoded)
+                && (workbenchId == null || !block.isUniversal()
+                        && !workbenchId.equals(AETaCZWorkbenchIds.getMenuBlockId(this)))) {
+            return null;
+        }
 
         for (RecipeHolder<GunSmithTableRecipe> holder : level.getRecipeManager()
                 .getAllRecipesFor(ModRecipe.GUN_SMITH_TABLE_CRAFTING.get())) {
             GunSmithTableRecipe recipe = holder.value();
             ItemStack expected = recipe.getResultItem(level.registryAccess());
             if ((block.isUniversal() || isRecipeForWorkbench(holder.id(), recipe, kind))
+                    && (workbenchId == null || TaCZPatternEncodingRecipes.isAllowed(workbenchId,
+                            new TaCZPatternEncodingRecipes.Entry(holder.id(), recipe)))
                     && AssemblerRecipeMatcher.outputsMatch(expected, patternDetails.getOutputs())
                     && AssemblerRecipeMatcher.matches(recipe, inputs)) {
                 return recipe;
@@ -258,11 +311,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     @Override
     public boolean acceptsPlans() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        if (root != null && root != this) {
-            return root.acceptsPlans();
-        }
-        return root != null && jobs.size() < (isExtended() ? 8 : 1) && getMainNode().isActive();
+        return isValidMenuRoot() && jobs.size() < (isExtended() ? 8 : 1) && getMainNode().isActive();
     }
 
     @Override
@@ -272,7 +321,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
-        if (!getMainNode().isActive() || getRootAssembler() != this) {
+        if (!getMainNode().isActive()) {
             return jobs.isEmpty() ? TickRateModulation.SLEEP : TickRateModulation.SLOWER;
         }
         boolean crafting = isCrafting();
@@ -354,8 +403,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
     }
 
     public ItemStack getPendingOutputPreview() {
-        AEMolecularAssemblerBlockEntity root = getRootAssembler();
-        return root != null && !root.jobs.isEmpty() ? root.jobs.getFirst().output.copy() : ItemStack.EMPTY;
+        return !jobs.isEmpty() ? jobs.getFirst().output.copy() : ItemStack.EMPTY;
     }
 
     @Override
@@ -427,25 +475,12 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
         return changed;
     }
 
-    public @Nullable AEMolecularAssemblerBlockEntity getRootAssembler() {
+    public boolean isValidMenuRoot() {
         Level level = getLevel();
-        BlockState state = getBlockState();
-        if (level == null || !(state.getBlock() instanceof MolecularAssemblerBlock block) || !block.isValidPart(state)) {
-            return null;
-        }
-        BlockPos root = block.getRootPos(getBlockPos(), state);
-        if (!level.hasChunkAt(root)) {
-            return null;
-        }
-        BlockState rootState = level.getBlockState(root);
-        if (!rootState.is(block)
-                || rootState.getValue(MolecularAssemblerBlock.PART) != 0
-                || rootState.getValue(MolecularAssemblerBlock.FACING) != state.getValue(MolecularAssemblerBlock.FACING)
-                || !block.isStructureLoadedAndValid(root, rootState, level)) {
-            return null;
-        }
-        BlockEntity entity = level.getBlockEntity(root);
-        return entity instanceof AEMolecularAssemblerBlockEntity assembler ? assembler : null;
+        BlockPos pos = getBlockPos();
+        return !isRemoved() && level != null && level.hasChunkAt(pos)
+                && level.getBlockEntity(pos) == this
+                && level.getBlockState(pos).getBlock() == getBlockState().getBlock();
     }
 
     private @Nullable MolecularAssemblerBlock getAssemblerBlock() {

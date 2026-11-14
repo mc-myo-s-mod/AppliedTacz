@@ -8,6 +8,7 @@
     "GunSmithTableMenuAccessor"
   ],
   "client": [
+    "client.CreativePackFiltersMixin",
     "CraftAmountScreenMixin",
     "CraftConfirmScreenMixin",
     "GunSmithTableScreenMixin"

@@ -20,10 +20,6 @@ public class AETaCZBlockEntity {
     public static final RegistryObject<BlockEntityType<AEMolecularAssemblerBlockEntity>> AE_MOLECULAR_ASSEMBLER =
             REGISTER.register("ae_molecular_assembler",
                     () -> BlockEntityType.Builder.of(AEMolecularAssemblerBlockEntity::new,
-                            AETaCZBlock.MOLECULAR_ASSEMBLER_AMMO.get(),
-                            AETaCZBlock.MOLECULAR_ASSEMBLER_ATTACHMENT.get(),
-                            AETaCZBlock.MOLECULAR_ASSEMBLER_GUN.get(),
-                            AETaCZBlock.MOLECULAR_ASSEMBLER_UNIVERSAL.get(),
                             AETaCZBlock.TACZ_ASSEMBLER_AMMO.get(),
                             AETaCZBlock.TACZ_ASSEMBLER_ATTACHMENT.get(),
                             AETaCZBlock.TACZ_ASSEMBLER_GUN.get(),

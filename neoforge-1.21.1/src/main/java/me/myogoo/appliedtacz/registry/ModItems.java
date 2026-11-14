@@ -31,16 +31,8 @@ public final class ModItems {
             () -> new AETaCZTableItem(ModBlocks.ATTACHMENT_TABLE.get(), AETaCZWorkbenchIds.ATTACHMENT_WORKBENCH_ID));
     public static final DeferredItem<Item> AMMO_WORKBENCH = ITEMS.register("ammo_workbench",
             () -> new AETaCZTableItem(ModBlocks.AMMO_ASSEMBLY_TABLE.get(), AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
-    public static final DeferredItem<Item> MOLECULAR_ASSEMBLER_GUN = ITEMS.register("molecular_assembler_gun",
-            () -> new AETaCZMolecularAssemblerItem(ModBlocks.MOLECULAR_ASSEMBLER_GUN.get(), DefaultAssets.DEFAULT_BLOCK_ID));
-    public static final DeferredItem<Item> MOLECULAR_ASSEMBLER_ATTACHMENT = ITEMS.register("molecular_assembler_attachment",
-            () -> new AETaCZMolecularAssemblerItem(ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), AETaCZWorkbenchIds.ATTACHMENT_WORKBENCH_ID));
-    public static final DeferredItem<Item> MOLECULAR_ASSEMBLER_AMMO = ITEMS.register("molecular_assembler_ammo",
-            () -> new AETaCZMolecularAssemblerItem(ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get(), AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
-    public static final DeferredItem<Item> MOLECULAR_ASSEMBLER_UNIVERSAL = ITEMS.register("molecular_assembler_universal",
-            () -> new AETaCZMolecularAssemblerItem(ModBlocks.MOLECULAR_ASSEMBLER_UNIVERSAL.get(), null));
     public static final DeferredItem<Item> MOLECULAR_ASSEMBLER = ITEMS.register("molecular_assembler",
-            () -> new BlockItem(ModBlocks.MOLECULAR_ASSEMBLER.get(), new Item.Properties().stacksTo(1)));
+            () -> new BlockItem(ModBlocks.MOLECULAR_ASSEMBLER.get(), new Item.Properties().stacksTo(64)));
     public static final DeferredItem<Item> TACZ_ASSEMBLER_GUN = ITEMS.register("tacz_assembler_gun",
             () -> new AETaCZMolecularAssemblerItem(ModBlocks.TACZ_ASSEMBLER_GUN.get(), DefaultAssets.DEFAULT_BLOCK_ID));
     public static final DeferredItem<Item> TACZ_ASSEMBLER_ATTACHMENT = ITEMS.register("tacz_assembler_attachment",

@@ -5,6 +5,7 @@ import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IBlock;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
 import me.myogoo.appliedtacz.AppliedTaCZ;
+import me.myogoo.appliedtacz.crafting.WorkbenchUpgradeKind;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import mezz.jei.api.IModPlugin;
@@ -54,6 +55,10 @@ public class AppliedTaczJeiPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(AETaCZBlock.GUN_SMITH_TABLE.get().asItem(), tableSubtype);
         registration.registerSubtypeInterpreter(AETaCZBlock.AMMO_ASSEMBLY_TABLE.get().asItem(), tableSubtype);
         registration.registerSubtypeInterpreter(AETaCZBlock.ATTACHMENT_TABLE.get().asItem(), tableSubtype);
+        for (WorkbenchUpgradeKind kind : WorkbenchUpgradeKind.values()) {
+            registration.registerSubtypeInterpreter(kind.assemblerBlock().asItem(), tableSubtype);
+            registration.registerSubtypeInterpreter(kind.extendedAssemblerBlock().asItem(), tableSubtype);
+        }
     }
 
     private static RecipeType<GunSmithTableRecipe> recipeType(ResourceLocation blockId) {

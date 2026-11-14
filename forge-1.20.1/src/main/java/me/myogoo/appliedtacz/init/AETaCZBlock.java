@@ -39,37 +39,29 @@ public class AETaCZBlock {
             AttachmentTable::new);
     public static final RegistryObject<AmmoAssemblyTable> AMMO_ASSEMBLY_TABLE = registerTableBlock("ammo_workbench",
             AmmoAssemblyTable::new);
-    public static final RegistryObject<MolecularAssemblerBlock> MOLECULAR_ASSEMBLER_AMMO =
-            registerAssemblerBlock("molecular_assembler_ammo", MolecularAssemblerBlock.Ammo::new);
-    public static final RegistryObject<MolecularAssemblerBlock> MOLECULAR_ASSEMBLER_ATTACHMENT =
-            registerAssemblerBlock("molecular_assembler_attachment", MolecularAssemblerBlock.Attachment::new);
-    public static final RegistryObject<MolecularAssemblerBlock> MOLECULAR_ASSEMBLER_GUN =
-            registerAssemblerBlock("molecular_assembler_gun", MolecularAssemblerBlock.Gun::new);
-    public static final RegistryObject<MolecularAssemblerBlock> MOLECULAR_ASSEMBLER_UNIVERSAL =
-            registerPlainAssemblerBlock("molecular_assembler_universal", MolecularAssemblerBlock.Universal::new);
     public static final RegistryObject<MolecularAssemblerBlock> MOLECULAR_ASSEMBLER =
-            registerPlainAssemblerBlock("molecular_assembler", MolecularAssemblerBlock.Compact::new);
+            registerPlainAssemblerBlock("molecular_assembler", () -> new MolecularAssemblerBlock(null));
     public static final RegistryObject<MolecularAssemblerBlock> TACZ_ASSEMBLER_AMMO =
             registerAssemblerBlock("tacz_assembler_ammo",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.AMMO_WORKBENCH, 1, 1, 1, 16));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.AMMO_WORKBENCH));
     public static final RegistryObject<MolecularAssemblerBlock> TACZ_ASSEMBLER_ATTACHMENT =
             registerAssemblerBlock("tacz_assembler_attachment",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH, 1, 1, 1, 16));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH));
     public static final RegistryObject<MolecularAssemblerBlock> TACZ_ASSEMBLER_GUN =
             registerAssemblerBlock("tacz_assembler_gun",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.GUN_SMITH_TABLE, 1, 1, 1, 16));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.GUN_SMITH_TABLE));
     public static final RegistryObject<MolecularAssemblerBlock> TACZ_ASSEMBLER_UNIVERSAL =
             registerPlainAssemblerBlock("tacz_assembler_universal",
-                    () -> new MolecularAssemblerBlock(null, 1, 1, 1, 16));
+                    () -> new MolecularAssemblerBlock(null));
     public static final RegistryObject<MolecularAssemblerBlock> EXTENDED_TACZ_ASSEMBLER_AMMO =
             registerAssemblerBlock("extended_tacz_assembler_ammo",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.AMMO_WORKBENCH, 1, 1, 1, 16, true));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.AMMO_WORKBENCH, true));
     public static final RegistryObject<MolecularAssemblerBlock> EXTENDED_TACZ_ASSEMBLER_ATTACHMENT =
             registerAssemblerBlock("extended_tacz_assembler_attachment",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH, 1, 1, 1, 16, true));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH, true));
     public static final RegistryObject<MolecularAssemblerBlock> EXTENDED_TACZ_ASSEMBLER_GUN =
             registerAssemblerBlock("extended_tacz_assembler_gun",
-                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.GUN_SMITH_TABLE, 1, 1, 1, 16, true));
+                    () -> new MolecularAssemblerBlock(WorkbenchUpgradeKind.GUN_SMITH_TABLE, true));
 
     private static <T extends Block> RegistryObject<T> registerTableBlock(String name, Supplier<T> supplier) {
         var block = BLOCkS.register(name, supplier);
@@ -87,7 +79,7 @@ public class AETaCZBlock {
     private static <T extends MolecularAssemblerBlock> RegistryObject<T> registerPlainAssemblerBlock(String name,
             Supplier<T> supplier) {
         var block = BLOCkS.register(name, supplier);
-        ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().stacksTo(1)));
+        ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties().stacksTo(64)));
         return block;
     }
 }

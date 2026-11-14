@@ -119,10 +119,10 @@ public abstract class GunSmithTableScreenMixin extends AbstractContainerScreen<G
         }
 
         Component line = Component.translatable("gui.appliedtacz.ae_network",
-                status.copy().withStyle(ChatFormatting.WHITE));
+                status.copy().withStyle(style -> style.withColor(color))).withStyle(ChatFormatting.WHITE);
         int x = this.leftPos + 6;
         int y = this.topPos + this.imageHeight - this.font.lineHeight - 4;
-        graphics.drawString(this.font, line, x, y, color, false);
+        graphics.drawString(this.font, line, x, y, 0xFFFFFF, false);
 
         int width = this.font.width(line);
         if (mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + this.font.lineHeight) {

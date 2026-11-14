@@ -5,6 +5,7 @@ import com.tacz.guns.block.GunSmithTableBlockA;
 import com.tacz.guns.block.GunSmithTableBlockC;
 import com.tacz.guns.api.DefaultAssets;
 import me.myogoo.appliedtacz.init.AETaCZBlock;
+import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -56,6 +57,14 @@ public enum WorkbenchUpgradeKind {
         return assemblerResult.get();
     }
 
+    public Block extendedAssemblerBlock() {
+        return switch (this) {
+            case GUN_SMITH_TABLE -> AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_GUN.get();
+            case AMMO_WORKBENCH -> AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_AMMO.get();
+            case ATTACHMENT_WORKBENCH -> AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get();
+        };
+    }
+
     public ResourceLocation defaultBlockId() {
         return defaultBlockId;
     }
@@ -66,7 +75,7 @@ public enum WorkbenchUpgradeKind {
                 return kind;
             }
         }
-        return null;
+        return AETaCZWorkbenchIndex.getKind(workbenchId).orElse(null);
     }
 
     public static Block assemblerBlockFor(ResourceLocation workbenchId) {
@@ -91,24 +100,21 @@ public enum WorkbenchUpgradeKind {
         if (appliedWorkbench == AETaCZBlock.AMMO_ASSEMBLY_TABLE.get()) {
             return AMMO_WORKBENCH;
         }
-        if (appliedWorkbench == AETaCZBlock.MOLECULAR_ASSEMBLER_AMMO.get()
-                || appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_AMMO.get()
+        if (appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_AMMO.get()
                 || appliedWorkbench == AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_AMMO.get()) {
             return AMMO_WORKBENCH;
         }
         if (appliedWorkbench == AETaCZBlock.ATTACHMENT_TABLE.get()) {
             return ATTACHMENT_WORKBENCH;
         }
-        if (appliedWorkbench == AETaCZBlock.MOLECULAR_ASSEMBLER_ATTACHMENT.get()
-                || appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_ATTACHMENT.get()
+        if (appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_ATTACHMENT.get()
                 || appliedWorkbench == AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get()) {
             return ATTACHMENT_WORKBENCH;
         }
         if (appliedWorkbench == AETaCZBlock.GUN_SMITH_TABLE.get()) {
             return GUN_SMITH_TABLE;
         }
-        if (appliedWorkbench == AETaCZBlock.MOLECULAR_ASSEMBLER_GUN.get()
-                || appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_GUN.get()
+        if (appliedWorkbench == AETaCZBlock.TACZ_ASSEMBLER_GUN.get()
                 || appliedWorkbench == AETaCZBlock.EXTENDED_TACZ_ASSEMBLER_GUN.get()) {
             return GUN_SMITH_TABLE;
         }

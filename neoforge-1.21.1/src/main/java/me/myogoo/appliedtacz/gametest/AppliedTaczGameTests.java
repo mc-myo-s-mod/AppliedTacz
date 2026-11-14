@@ -20,6 +20,9 @@ import com.tacz.guns.api.DefaultAssets;
 import com.tacz.guns.api.item.builder.BlockItemBuilder;
 import com.tacz.guns.api.item.nbt.BlockItemDataAccessor;
 import com.tacz.guns.api.TimelessAPI;
+import com.tacz.guns.resource.CommonAssetsManager;
+import com.tacz.guns.resource.index.CommonBlockIndex;
+import com.tacz.guns.resource.manager.CommonDataManager;
 import com.tacz.guns.crafting.GunSmithTableIngredient;
 import com.tacz.guns.crafting.GunSmithTableRecipe;
 import com.tacz.guns.crafting.result.GunSmithTableResult;
@@ -39,6 +42,7 @@ import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIndex;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.gametest.framework.GameTest;
@@ -64,13 +68,13 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -152,27 +156,8 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void placingAssemblerItemsBuildsAllFootprints(GameTestHelper helper) {
-        MolecularAssemblerBlock ammo = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get();
-        helper.assertValueEqual(ammo.partCount(), 4, "Expected ammo assembler to occupy 2x1x2");
-        helper.assertFalse(ammo.isValidPart(ammo.defaultBlockState().setValue(MolecularAssemblerBlock.PART, 4)),
-                "Expected ammo part 4 to be outside the footprint");
-        assertPlacesFootprint(helper, ammo, assemblerStack(ammo, AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
-        assertPlacesFootprint(helper, (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get(),
-                assemblerStack(ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), AETaCZWorkbenchIds.ATTACHMENT_WORKBENCH_ID));
-        assertPlacesFootprint(helper, (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_GUN.get(),
-                assemblerStack(ModBlocks.MOLECULAR_ASSEMBLER_GUN.get(), AETaCZWorkbenchIds.WORKBENCH_B_ID));
-        assertPlacesFootprint(helper, (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_UNIVERSAL.get(),
-                new ItemStack(ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get()));
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty3x3x3")
     public static void compactAssemblerOccupiesOneBlockAndConnectsOnSixFaces(GameTestHelper helper) {
         MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER.get();
-        helper.assertValueEqual(block.partCount(), 1, "Expected compact assembler to occupy one block");
-        helper.assertFalse(block.isValidPart(block.defaultBlockState().setValue(MolecularAssemblerBlock.PART, 1)),
-                "Expected compact assembler to reject additional parts");
         for (Direction side : Direction.values()) {
             helper.setBlock(ROOT.relative(side), Blocks.STONE);
         }
@@ -182,7 +167,7 @@ public final class AppliedTaczGameTests {
             helper.assertBlockPresent(Blocks.STONE, ROOT.relative(side));
         }
         AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
-        helper.assertTrue(root.getRootAssembler() == root, "Expected compact assembler to be its own root");
+        helper.assertTrue(root.isValidMenuRoot(), "Expected compact assembler to be its own root");
         helper.assertTrue(DefaultAssets.EMPTY_BLOCK_ID.equals(root.getId()),
                 "Expected compact assembler to have no dedicated workbench binding");
         helper.setBlock(ROOT.east(), block);
@@ -215,13 +200,12 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void compactVariantsPlaceOnlyOneCellAndKeepLegacyFootprints(GameTestHelper helper) {
+    public static void compactVariantsPlaceOnlyOneCell(GameTestHelper helper) {
         for (Block registered : List.of(ModBlocks.TACZ_ASSEMBLER_AMMO.get(),
                 ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get(), ModBlocks.TACZ_ASSEMBLER_GUN.get(),
                 ModBlocks.TACZ_ASSEMBLER_UNIVERSAL.get(), ModBlocks.EXTENDED_TACZ_ASSEMBLER_AMMO.get(),
                 ModBlocks.EXTENDED_TACZ_ASSEMBLER_ATTACHMENT.get(), ModBlocks.EXTENDED_TACZ_ASSEMBLER_GUN.get())) {
             MolecularAssemblerBlock block = (MolecularAssemblerBlock) registered;
-            helper.assertValueEqual(block.partCount(), 1, "Expected compact variant to occupy one cell");
             for (Direction side : Direction.values()) {
                 helper.setBlock(ROOT.relative(side), Blocks.STONE);
             }
@@ -229,7 +213,7 @@ public final class AppliedTaczGameTests {
             helper.assertBlockPresent(block, ROOT);
             AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
             helper.assertTrue(root.getType().isValid(helper.getBlockState(ROOT)), "Expected registered block entity support");
-            helper.assertTrue(root.getRootAssembler() == root, "Expected single-cell root");
+            helper.assertTrue(root.isValidMenuRoot(), "Expected single-cell root");
             helper.assertTrue(root.getId().equals(block.isUniversal() ? DefaultAssets.EMPTY_BLOCK_ID
                     : block.kind().defaultBlockId()), "Expected correct workbench binding");
             helper.assertTrue(new AEMolecularAssemblerMenu(1, menuPlayer(helper).getInventory(), root).isExtended()
@@ -248,30 +232,16 @@ public final class AppliedTaczGameTests {
                     .filter(item -> item.getItem().is(block.asItem())).mapToInt(item -> item.getItem().getCount()).sum(),
                     1, "Expected exactly one compact variant drop");
         }
-        helper.assertValueEqual(((MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get()).partCount(), 4,
-                "Expected legacy ammo footprint unchanged");
-        helper.assertValueEqual(((MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get()).partCount(), 4,
-                "Expected legacy attachment footprint unchanged");
-        helper.assertValueEqual(((MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_GUN.get()).partCount(), 8,
-                "Expected legacy gun footprint unchanged");
-        helper.assertValueEqual(((MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_UNIVERSAL.get()).partCount(), 8,
-                "Expected legacy universal footprint unchanged");
         helper.succeed();
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void compactAssemblerRecipesRequireOriginalWorkbenchAndProvider(GameTestHelper helper) {
+    public static void compactAssemblerRecipesRequireExactWorkbenchAndProvider(GameTestHelper helper) {
         for (var entry : AETaCZWorkbenchIndex.entries()) {
             ItemStack workbench = BlockItemBuilder.create(entry.baseWorkbench()).setId(entry.blockId()).build();
             ItemStack assembler = new ItemStack(AEBlocks.MOLECULAR_ASSEMBLER.asItem());
             ItemStack provider = new ItemStack(AEBlocks.PATTERN_PROVIDER.asItem());
             CraftingInput input = CraftingInput.of(3, 1, List.of(workbench, assembler, provider));
-            if (WorkbenchUpgradeKind.forAssembler(entry.blockId()) == null) {
-                helper.assertTrue(helper.getLevel().getRecipeManager()
-                        .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel()).isEmpty(),
-                        "Expected custom workbenches to have no command-only universal assembler recipe");
-                continue;
-            }
             var holder = helper.getLevel().getRecipeManager()
                     .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel()).orElseThrow();
             var recipe = holder.value();
@@ -334,11 +304,22 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
+    public static void removedLargeAssemblerIdsAreNotRegistered(GameTestHelper helper) {
+        for (String path : List.of("molecular_assembler_ammo", "molecular_assembler_attachment",
+                "molecular_assembler_gun", "molecular_assembler_universal")) {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(AppliedTaCZ.MODID, path);
+            helper.assertTrue(!BuiltInRegistries.BLOCK.containsKey(id) && !BuiltInRegistries.ITEM.containsKey(id),
+                    "Expected removed large assembler block and item ID to stay absent: " + id);
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty3x3x3")
     public static void universalAssemblersHaveNoCraftingRecipes(GameTestHelper helper) {
         TagKey<Item> hidden = TagKey.create(Registries.ITEM,
                 ResourceLocation.fromNamespaceAndPath("c", "hidden_from_recipe_viewers"));
         for (Item item : List.of(ModItems.TACZ_ASSEMBLER_UNIVERSAL.get(),
-                ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get(), ModItems.MOLECULAR_ASSEMBLER.get())) {
+                ModItems.MOLECULAR_ASSEMBLER.get())) {
             helper.assertTrue(new ItemStack(item).is(hidden),
                     "Expected every universal assembler in the loaded recipe-viewer hidden tag");
         }
@@ -349,7 +330,6 @@ public final class AppliedTaczGameTests {
         for (var holder : helper.getLevel().getRecipeManager().getRecipes()) {
             ItemStack result = holder.value().getResultItem(helper.getLevel().registryAccess());
             helper.assertFalse(result.is(ModItems.TACZ_ASSEMBLER_UNIVERSAL.get())
-                            || result.is(ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get())
                             || result.is(ModItems.MOLECULAR_ASSEMBLER.get()),
                     "Expected universal assemblers to be command-only, found " + holder.id());
         }
@@ -357,8 +337,8 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void legacyUniversalAssemblerItemRemainsUnbound(GameTestHelper helper) {
-        ItemStack universal = new ItemStack(ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get());
+    public static void universalAssemblerItemRemainsUnbound(GameTestHelper helper) {
+        ItemStack universal = new ItemStack(ModItems.TACZ_ASSEMBLER_UNIVERSAL.get());
         helper.assertTrue(universal.getItem() instanceof BlockItemDataAccessor accessor
                         && DefaultAssets.EMPTY_BLOCK_ID.equals(accessor.getBlockId(universal)),
                 "Expected universal assembler item to have no bound TaCZ BlockId");
@@ -366,27 +346,15 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void blockedAssemblerPlacementDoesNotMutateWorld(GameTestHelper helper) {
-        helper.setBlock(ROOT.above(), Blocks.STONE);
-        placeAssembler(helper, assemblerStack(ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get(),
-                AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
-
-        helper.assertBlockPresent(Blocks.AIR, ROOT);
-        helper.assertBlockPresent(Blocks.STONE, ROOT.above());
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty3x3x3")
-    public static void breakingAnyPartDropsOneAssemblerWithBlockId(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get();
+    public static void breakingAssemblerDropsOneAssemblerWithBlockId(GameTestHelper helper) {
+        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.TACZ_ASSEMBLER_AMMO.get();
         ResourceLocation blockId = AETaCZWorkbenchIds.AMMO_WORKBENCH_ID;
         placeAssembler(helper, assemblerStack(block, blockId));
 
-        Direction facing = helper.getBlockState(ROOT).getValue(MolecularAssemblerBlock.FACING);
-        helper.destroyBlock(block.getPartPos(ROOT, facing, 1));
+        helper.destroyBlock(ROOT);
         helper.runAfterDelay(2, () -> {
             List<ItemEntity> drops = helper.getEntities(EntityType.ITEM).stream()
-                    .filter(entity -> entity.getItem().is(ModItems.MOLECULAR_ASSEMBLER_AMMO.get()))
+                    .filter(entity -> entity.getItem().is(ModItems.TACZ_ASSEMBLER_AMMO.get()))
                     .toList();
             helper.assertValueEqual(drops.size(), 1, "Expected exactly one assembler item drop");
             ItemStack drop = drops.getFirst().getItem();
@@ -398,7 +366,7 @@ public final class AppliedTaczGameTests {
 
     @GameTest(template = "empty3x3x3")
     public static void poweredPatternProviderCraftsActualAmmoRecipe(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get();
+        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.TACZ_ASSEMBLER_AMMO.get();
         placeAssembler(helper, assemblerStack(block, AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
         NetworkPositions network = placeProviderNetwork(helper);
 
@@ -446,7 +414,7 @@ public final class AppliedTaczGameTests {
 
     private static void assertInternalPatternsCompleteActualCpuRequest(GameTestHelper helper, boolean compact) {
         assertInternalPatternsCompleteActualCpuRequest(helper, compact ? ModBlocks.MOLECULAR_ASSEMBLER.get()
-                : ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get(), AETaCZWorkbenchIds.AMMO_WORKBENCH_ID);
+                : ModBlocks.TACZ_ASSEMBLER_AMMO.get(), AETaCZWorkbenchIds.AMMO_WORKBENCH_ID);
     }
 
     @GameTest(template = "empty3x3x3", timeoutTicks = 300)
@@ -496,7 +464,7 @@ public final class AppliedTaczGameTests {
         MolecularAssemblerBlock assemblerBlock = (MolecularAssemblerBlock) block;
         placeAssembler(helper, new ItemStack(block));
         AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
-        BlockPos energyPos = assemblerBlock.partCount() == 1 ? ROOT.above() : ROOT.below();
+        BlockPos energyPos = ROOT.above();
         helper.setBlock(energyPos, AEBlocks.CREATIVE_ENERGY_CELL.block());
         helper.setBlock(energyPos.east(), AEBlocks.DRIVE.block());
         helper.setBlock(energyPos.west(), AEBlocks.CRAFTING_STORAGE_64K.block());
@@ -583,7 +551,7 @@ public final class AppliedTaczGameTests {
 
     private static void assertAssemblerPersistsPatternsLargeOutputAndCraftTime(GameTestHelper helper, boolean compact) {
         placeAssembler(helper, new ItemStack(compact ? ModItems.MOLECULAR_ASSEMBLER.get()
-                : ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get()));
+                : ModItems.TACZ_ASSEMBLER_UNIVERSAL.get()));
         AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
         CraftCase craft = findCraftForWorkbench(AETaCZWorkbenchIds.AMMO_WORKBENCH_ID, helper);
         ItemStack pattern = PatternDetailsHelper.encodeProcessingPattern(craft.inputs(),
@@ -620,14 +588,14 @@ public final class AppliedTaczGameTests {
         helper.assertValueEqual(drops.stream().filter(item -> item.getItem().is(AEItems.PROCESSING_PATTERN.asItem()))
                 .mapToInt(item -> item.getItem().getCount()).sum(), 9, "Expected stored patterns to drop exactly once");
         helper.assertValueEqual(drops.stream().filter(item -> item.getItem().is(compact
-                                ? ModItems.MOLECULAR_ASSEMBLER.get() : ModItems.MOLECULAR_ASSEMBLER_UNIVERSAL.get()))
+                                ? ModItems.MOLECULAR_ASSEMBLER.get() : ModItems.TACZ_ASSEMBLER_UNIVERSAL.get()))
                 .mapToInt(item -> item.getItem().getCount()).sum(), 1, "Expected exactly one assembler item drop");
         helper.assertTrue(root.collectPendingDrops().isEmpty(), "Expected no duplicate drops after breaking machine");
         helper.succeed();
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void additionalWorkbenchUsesUniversalAssembler(GameTestHelper helper) {
+    public static void supportedWorkbenchStacksKeepTheirIdentity(GameTestHelper helper) {
         helper.assertValueEqual(WorkbenchUpgradeKind.assemblerBlockFor(AETaCZWorkbenchIds.AMMO_WORKBENCH_ID),
                 ModBlocks.TACZ_ASSEMBLER_AMMO.get(), "Expected original ammo table to stay dedicated");
         helper.assertValueEqual(WorkbenchUpgradeKind.assemblerBlockFor(AETaCZWorkbenchIds.ATTACHMENT_WORKBENCH_ID),
@@ -640,8 +608,10 @@ public final class AppliedTaczGameTests {
         ItemStack additionalAssembler = new AETaCZWorkbenchIndex.Entry(
                 ResourceLocation.parse("custom:ammo_workbench"), loadedEntry.baseWorkbench(), loadedEntry.kind())
                 .createAssemblerStack();
-        helper.assertTrue(additionalAssembler.is(ModItems.TACZ_ASSEMBLER_UNIVERSAL.get()),
-                "Expected additional workbench entry to create a Universal assembler item");
+        helper.assertTrue(additionalAssembler.is(loadedEntry.kind().assemblerBlock().asItem())
+                        && ((BlockItemDataAccessor) additionalAssembler.getItem()).getBlockId(additionalAssembler)
+                                .equals(ResourceLocation.parse("custom:ammo_workbench")),
+                "Expected supported workbench entry to keep its assembler category and custom identity");
         for (WorkbenchUpgradeKind kind : WorkbenchUpgradeKind.values()) {
             helper.assertValueEqual(AETaCZWorkbenchIndex.getDefaultBlockId(kind.assemblerBlock()),
                     kind.defaultBlockId(), "Expected dedicated assembler to keep its original workbench id");
@@ -650,20 +620,106 @@ public final class AppliedTaczGameTests {
                             && accessor.getBlockId(assembler).equals(kind.defaultBlockId()),
                     "Expected untagged dedicated assembler item to keep its original workbench id");
         }
-        for (Block legacy : List.of(ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get(),
-                ModBlocks.MOLECULAR_ASSEMBLER_ATTACHMENT.get(), ModBlocks.MOLECULAR_ASSEMBLER_GUN.get())) {
-            MolecularAssemblerBlock block = (MolecularAssemblerBlock) legacy;
+        for (Block registered : List.of(ModBlocks.TACZ_ASSEMBLER_AMMO.get(),
+                ModBlocks.TACZ_ASSEMBLER_ATTACHMENT.get(), ModBlocks.TACZ_ASSEMBLER_GUN.get())) {
+            MolecularAssemblerBlock block = (MolecularAssemblerBlock) registered;
             helper.assertValueEqual(WorkbenchUpgradeKind.fromAppliedWorkbench(block), block.kind(),
-                    "Expected legacy category recognition");
+                    "Expected dedicated assembler category recognition");
             helper.assertValueEqual(AETaCZWorkbenchIndex.getDefaultBlockId(block), block.kind().defaultBlockId(),
-                    "Expected legacy default binding unchanged");
+                    "Expected dedicated assembler default binding unchanged");
         }
         helper.succeed();
     }
 
     @GameTest(template = "empty3x3x3")
+    public static void addonWorkbenchesProduceBoundBasicAndExtendedAssemblers(GameTestHelper helper)
+            throws ReflectiveOperationException {
+        var field = CommonAssetsManager.class.getDeclaredField("blockIndex");
+        field.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        var index = (CommonDataManager<CommonBlockIndex>) field.get(CommonAssetsManager.get());
+        Map<ResourceLocation, CommonBlockIndex> blocks = index.getAllData();
+        var recipeManager = helper.getLevel().getRecipeManager();
+        var originalRecipes = new ArrayList<>(recipeManager.getRecipes());
+        var fixtureIds = new ArrayList<ResourceLocation>();
+        try {
+            for (WorkbenchUpgradeKind kind : WorkbenchUpgradeKind.values()) {
+                ResourceLocation id = ResourceLocation.fromNamespaceAndPath("appliedtacz_gametest",
+                        "addon_" + kind.defaultBlockId().getPath());
+                var source = TimelessAPI.getCommonBlockIndex(kind.defaultBlockId()).orElseThrow();
+                String basePath = switch (kind) {
+                    case GUN_SMITH_TABLE -> "workbench_b";
+                    case AMMO_WORKBENCH -> "workbench_a";
+                    case ATTACHMENT_WORKBENCH -> "workbench_c";
+                };
+                var base = (net.minecraft.world.item.BlockItem) BuiltInRegistries.ITEM.get(
+                        ResourceLocation.fromNamespaceAndPath("tacz", basePath));
+                blocks.put(id, new CommonBlockIndex() {
+                    @Override
+                    public net.minecraft.world.item.BlockItem getBlock() {
+                        return base;
+                    }
+
+                    @Override
+                    public com.tacz.guns.resource.pojo.data.block.BlockData getData() {
+                        return source.getData();
+                    }
+
+                    @Override
+                    public com.tacz.guns.resource.filter.RecipeFilter getFilter() {
+                        return source.getFilter();
+                    }
+                });
+                fixtureIds.add(id);
+            }
+            me.myogoo.appliedtacz.event.WorkbenchUpgradeRecipeEvents.onServerStarted(
+                    new net.neoforged.neoforge.event.server.ServerStartedEvent(helper.getLevel().getServer()));
+            for (ResourceLocation id : fixtureIds) {
+                var entry = AETaCZWorkbenchIndex.entries().stream()
+                        .filter(candidate -> candidate.blockId().equals(id)).findFirst().orElseThrow();
+                var kind = entry.kind();
+                helper.assertTrue(WorkbenchUpgradeKind.forAssembler(id) == kind
+                                && WorkbenchUpgradeKind.assemblerBlockFor(id) == kind.assemblerBlock(),
+                        "Expected dynamically indexed workbench to use its supported assembler category");
+                ItemStack extended = entry.createExtendedAssemblerStack();
+                helper.assertTrue(extended.is(kind.extendedAssemblerBlock().asItem())
+                                && ((BlockItemDataAccessor) extended.getItem()).getBlockId(extended).equals(id),
+                        "Expected creative Extended stack to retain addon workbench identity");
+                var grid = new ArrayList<ItemStack>();
+                grid.add(BlockItemBuilder.create(entry.baseWorkbench()).setId(entry.blockId()).build());
+                helper.assertTrue(((BlockItemDataAccessor) grid.get(0).getItem()).getBlockId(grid.get(0)).equals(id),
+                        "Expected addon fixture to use a mutable TaCZ workbench item");
+                grid.add(new ItemStack(AEBlocks.MOLECULAR_ASSEMBLER.asItem()));
+                grid.add(new ItemStack(AEBlocks.PATTERN_PROVIDER.asItem()));
+                var input = CraftingInput.of(3, 1, grid);
+                var recipe = recipeManager.getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel()).orElseThrow().value();
+                helper.assertTrue(ItemStack.matches(recipe.assemble(input, helper.getLevel().registryAccess()),
+                                entry.createAssemblerStack()), "Expected addon assembler recipe to retain its exact workbench ID");
+                grid = new ArrayList<>();
+                for (int slot = 0; slot < 9; slot++) {
+                    grid.add(slot == 4 ? AEItems.CALCULATION_PROCESSOR.stack() : entry.createAssemblerStack());
+                }
+                input = CraftingInput.of(3, 3, grid);
+                var extendedRecipe = recipeManager.getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                        .orElseThrow().value();
+                helper.assertTrue(ItemStack.matches(extendedRecipe.assemble(input, helper.getLevel().registryAccess()),
+                                extended), "Expected eight bound basic assemblers to produce the same bound Extended variant");
+                grid.set(0, new ItemStack(kind.assemblerBlock()));
+                input = CraftingInput.of(3, 3, grid);
+                helper.assertTrue(recipeManager.getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel()).isEmpty(),
+                        "Expected mixed workbench IDs to reject every recipe, including old item-only Extended recipes");
+            }
+        } finally {
+            fixtureIds.forEach(blocks::remove);
+            recipeManager.replaceRecipes(originalRecipes);
+        }
+        helper.succeed();
+    }
+
+
+    @GameTest(template = "empty3x3x3")
     public static void universalPatternProviderCraftsDifferentRecipeKinds(GameTestHelper helper) {
-        assertUniversalPatternProviderCraftsDifferentRecipeKinds(helper, ModBlocks.MOLECULAR_ASSEMBLER_UNIVERSAL.get());
+        assertUniversalPatternProviderCraftsDifferentRecipeKinds(helper, ModBlocks.MOLECULAR_ASSEMBLER.get());
     }
 
     @GameTest(template = "empty3x3x3")
@@ -712,7 +768,7 @@ public final class AppliedTaczGameTests {
 
     @GameTest(template = "empty3x3x3")
     public static void dedicatedAssemblerRejectsWrongRecipeKind(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_GUN.get();
+        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.TACZ_ASSEMBLER_GUN.get();
         placeAssembler(helper, assemblerStack(block, DefaultAssets.DEFAULT_BLOCK_ID));
         NetworkPositions network = placeProviderNetwork(helper);
 
@@ -731,23 +787,8 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void assemblerMenuRootResolvesFromEveryPart(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_GUN.get();
-        placeAssembler(helper, assemblerStack(block, DefaultAssets.DEFAULT_BLOCK_ID));
-
-        AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
-        Direction facing = helper.getBlockState(ROOT).getValue(MolecularAssemblerBlock.FACING);
-        for (int part = 0; part < block.partCount(); part++) {
-            AEMolecularAssemblerBlockEntity partEntity = helper.getBlockEntity(block.getPartPos(ROOT, facing, part));
-            helper.assertTrue(partEntity.getRootAssembler() == root,
-                    "Expected assembler part " + part + " to resolve the menu root");
-        }
-        helper.succeed();
-    }
-
-    @GameTest(template = "empty3x3x3")
     public static void assemblerMenuShowsReadOnlyPendingSnapshot(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get();
+        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.TACZ_ASSEMBLER_AMMO.get();
         placeAssembler(helper, assemblerStack(block, AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
         AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
         setPendingOutput(root, new ItemStack(Items.DIAMOND, 3), helper);
@@ -806,8 +847,8 @@ public final class AppliedTaczGameTests {
     }
 
     @GameTest(template = "empty3x3x3")
-    public static void assemblerMenuInvalidatesWhenStructureBreaks(GameTestHelper helper) {
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.MOLECULAR_ASSEMBLER_AMMO.get();
+    public static void assemblerMenuInvalidatesWhenBlockBreaks(GameTestHelper helper) {
+        MolecularAssemblerBlock block = (MolecularAssemblerBlock) ModBlocks.TACZ_ASSEMBLER_AMMO.get();
         placeAssembler(helper, assemblerStack(block, AETaCZWorkbenchIds.AMMO_WORKBENCH_ID));
 
         Player player = menuPlayer(helper);
@@ -815,34 +856,10 @@ public final class AppliedTaczGameTests {
         AEMolecularAssemblerMenu menu = new AEMolecularAssemblerMenu(1, player.getInventory(), root);
         helper.assertTrue(menu.stillValid(player), "Expected intact assembler menu to be valid");
 
-        Direction facing = helper.getBlockState(ROOT).getValue(MolecularAssemblerBlock.FACING);
-        helper.destroyBlock(block.getPartPos(ROOT, facing, 1));
-        menu.broadcastChanges();
-        helper.assertFalse(menu.isValidMenu(), "Expected broken assembler structure to invalidate the menu");
-        helper.succeed();
-    }
-
-    private static void assertPlacesFootprint(GameTestHelper helper, MolecularAssemblerBlock block, ItemStack stack) {
-        placeAssembler(helper, stack);
-        BlockState rootState = helper.getBlockState(ROOT);
-        helper.assertTrue(rootState.is(block), "Expected root block to be placed");
-        Direction facing = rootState.getValue(MolecularAssemblerBlock.FACING);
-
-        for (int part = 0; part < block.partCount(); part++) {
-            BlockPos partPos = block.getPartPos(ROOT, facing, part);
-            BlockState partState = helper.getBlockState(partPos);
-            helper.assertTrue(partState.is(block), "Expected assembler part " + part + " to be placed");
-            helper.assertValueEqual(partState.getValue(MolecularAssemblerBlock.PART), part,
-                    "Expected assembler part property to match");
-            helper.assertValueEqual(block.getRootPos(partPos, partState), ROOT,
-                    "Expected assembler part to resolve the root");
-        }
-        AEMolecularAssemblerBlockEntity root = helper.getBlockEntity(ROOT);
-        helper.assertTrue(root.getCraftingMachine(Direction.UP) == null,
-                "Expected existing multiblock assembler to keep its upper face closed");
-        helper.assertTrue(root.getCableConnectionType(Direction.UP) == AECableType.NONE,
-                "Expected existing multiblock assembler to keep its upper cable face closed");
         helper.destroyBlock(ROOT);
+        menu.broadcastChanges();
+        helper.assertFalse(menu.isValidMenu(), "Expected removed assembler to invalidate the menu");
+        helper.succeed();
     }
 
     private static void placeAssembler(GameTestHelper helper, ItemStack stack) {
@@ -868,31 +885,11 @@ public final class AppliedTaczGameTests {
     }
 
     private static NetworkPositions placeProviderNetwork(GameTestHelper helper) {
-        BlockState rootState = helper.getBlockState(ROOT);
-        MolecularAssemblerBlock block = (MolecularAssemblerBlock) rootState.getBlock();
-        Direction facing = rootState.getValue(MolecularAssemblerBlock.FACING);
-        for (int part = block.partCount() / 2; part < block.partCount(); part++) {
-            BlockPos partPos = block.getPartPos(ROOT, facing, part);
-            for (Direction side : Direction.Plane.HORIZONTAL) {
-                BlockPos provider = partPos.relative(side);
-                BlockPos energy = provider.below();
-                if (isInsideTemplate(provider)
-                        && isInsideTemplate(energy)
-                        && helper.getBlockState(provider).isAir()
-                        && helper.getBlockState(energy).isAir()) {
-                    helper.setBlock(provider, AEBlocks.PATTERN_PROVIDER.block());
-                    helper.setBlock(energy, AEBlocks.CREATIVE_ENERGY_CELL.block());
-                    return new NetworkPositions(provider, energy);
-                }
-            }
-        }
-        throw new IllegalStateException("Could not place AE2 provider beside assembler footprint");
-    }
-
-    private static boolean isInsideTemplate(BlockPos pos) {
-        return pos.getX() >= 0 && pos.getX() < 3
-                && pos.getY() >= 0 && pos.getY() < 3
-                && pos.getZ() >= 0 && pos.getZ() < 3;
+        BlockPos provider = ROOT.east();
+        BlockPos energy = provider.below();
+        helper.setBlock(provider, AEBlocks.PATTERN_PROVIDER.block());
+        helper.setBlock(energy, AEBlocks.CREATIVE_ENERGY_CELL.block());
+        return new NetworkPositions(provider, energy);
     }
 
     private static ItemStack assemblerStack(Block block, ResourceLocation blockId) {

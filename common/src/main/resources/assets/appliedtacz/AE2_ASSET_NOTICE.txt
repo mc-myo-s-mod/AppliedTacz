@@ -21,3 +21,15 @@ change the license of AppliedTaCZ's Java code.
 The outer texture is referenced as ae2:block/molecular_assembler and supplied
 by the installed AE2 version, not copied into the AppliedTaCZ game resources.
 The inner-frame geometry and atlas remain the original AppliedTaCZ assets.
+
+Applied Energistics 2 Pattern Encoding Terminal editable assets
+
+The loader-specific textures/part/pattern_encoding_terminal_{bright,medium,dark}.png
+are editable copies of AE2's pattern encoding terminal screen layers.
+Sources: appliedenergistics2-forge-15.4.10.jar (Minecraft 1.20.1) and
+appliedenergistics2-19.2.17.jar (Minecraft 1.21.1).
+Small local part/item JSON wrappers bind these screen layers while inheriting AE2's
+geometry. Frames, status indicators, item display transforms and their common textures
+are supplied directly by the installed AE2 version, not copied into this mod.
+The screen PNG copies retain their original pixels and the above AE2 asset credits and
+CC BY-NC-SA 3.0 license; they are not independently authored AppliedTaCZ artwork.

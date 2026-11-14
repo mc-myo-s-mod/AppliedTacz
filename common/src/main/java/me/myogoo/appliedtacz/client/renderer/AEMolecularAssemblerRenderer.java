@@ -20,8 +20,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3f;
 
@@ -29,7 +27,6 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class AEMolecularAssemblerRenderer implements BlockEntityRenderer<AEMolecularAssemblerBlockEntity> {
-    private final ItemStack metal = new ItemStack(Items.IRON_BLOCK);
     private final Map<BedrockModel, AABB> workbenchBounds = new WeakHashMap<>();
     private final Map<AEMolecularAssemblerBlockEntity, AssemblerVfx.Activity> vfxActivity = new WeakHashMap<>();
 
@@ -40,35 +37,13 @@ public class AEMolecularAssemblerRenderer implements BlockEntityRenderer<AEMolec
     public void render(AEMolecularAssemblerBlockEntity assembler, float partialTick, PoseStack poses,
             MultiBufferSource buffers, int light, int overlay) {
         var state = assembler.getBlockState();
-        if (assembler.getLevel() == null || !(state.getBlock() instanceof MolecularAssemblerBlock block)
-                || state.getValue(MolecularAssemblerBlock.PART) != 0) {
+        if (assembler.getLevel() == null || !(state.getBlock() instanceof MolecularAssemblerBlock block)) {
             return;
         }
         WorkbenchUpgradeKind kind = WorkbenchUpgradeKind.fromAppliedWorkbench(state.getBlock());
-        if (block.partCount() == 1) {
-            if (block.isExtended() || BuiltInRegistries.BLOCK.getKey(block).getPath().startsWith("tacz_assembler_")) {
-                renderWorkbench(assembler, kind, partialTick, poses, buffers, light, overlay);
-            }
-            return;
+        if (block.isExtended() || BuiltInRegistries.BLOCK.getKey(block).getPath().startsWith("tacz_assembler_")) {
+            renderWorkbench(assembler, kind, partialTick, poses, buffers, light, overlay);
         }
-        boolean narrow = kind == WorkbenchUpgradeKind.AMMO_WORKBENCH
-                || kind == WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH;
-        double x = kind == WorkbenchUpgradeKind.AMMO_WORKBENCH ? 23.5 : 16;
-        double z = kind == WorkbenchUpgradeKind.AMMO_WORKBENCH ? 8
-                : kind == WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH ? 7
-                : kind == WorkbenchUpgradeKind.GUN_SMITH_TABLE ? 9 : 16;
-        double y = narrow ? 16 : 20;
-        double time = assembler.getLevel().getGameTime() + partialTick;
-        double stroke = assembler.isCrafting() ? (1 - Math.cos(time * Math.PI / 10)) * (narrow ? 1 : 2.5) : 0;
-
-        poses.pushPose();
-        poses.translate(0.5, 0, 0.5);
-        poses.mulPose(Axis.YN.rotationDegrees(state.getValue(MolecularAssemblerBlock.FACING).toYRot() + 180));
-        poses.translate(x / 16 - 0.5, (y - stroke) / 16, z / 16 - 0.5);
-        renderMetal(assembler, poses, buffers, light, overlay, 3.5f / 16, 1f / 16, 3.5f / 16);
-        poses.translate(0, 2.5 / 16, 0);
-        renderMetal(assembler, poses, buffers, light, overlay, 1.75f / 16, 5f / 16, 1.75f / 16);
-        poses.popPose();
     }
 
     private void renderWorkbench(AEMolecularAssemblerBlockEntity assembler, WorkbenchUpgradeKind kind,
@@ -186,17 +161,4 @@ public class AEMolecularAssemblerRenderer implements BlockEntityRenderer<AEMolec
         poses.popPose();
     }
 
-    private void renderMetal(AEMolecularAssemblerBlockEntity assembler, PoseStack poses,
-            MultiBufferSource buffers, int light, int overlay, float width, float height, float depth) {
-        poses.pushPose();
-        poses.scale(width, height, depth);
-        Minecraft.getInstance().getItemRenderer().renderStatic(metal, ItemDisplayContext.NONE,
-                light, overlay, poses, buffers, assembler.getLevel(), 0);
-        poses.popPose();
-    }
-
-    @Override
-    public boolean shouldRenderOffScreen(AEMolecularAssemblerBlockEntity assembler) {
-        return assembler.getBlockState().getBlock() instanceof MolecularAssemblerBlock block && block.partCount() > 1;
-    }
 }

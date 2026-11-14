@@ -21,7 +21,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.SoundType;
@@ -30,14 +29,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
-import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,32 +42,20 @@ import java.util.Set;
 
 public class MolecularAssemblerBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final IntegerProperty PART = IntegerProperty.create("part", 0, 7);
     private static final Set<String> CREATIVE_REMOVALS = new HashSet<>();
-    private static boolean removingParts;
 
     private final @Nullable WorkbenchUpgradeKind kind;
-    private final int width;
-    private final int depth;
-    private final int height;
-    private final int topShapeHeight;
     private final boolean extended;
 
-    public MolecularAssemblerBlock(@Nullable WorkbenchUpgradeKind kind, int width, int depth, int height,
-            int topShapeHeight) {
-        this(kind, width, depth, height, topShapeHeight, false);
+    public MolecularAssemblerBlock(@Nullable WorkbenchUpgradeKind kind) {
+        this(kind, false);
     }
 
-    public MolecularAssemblerBlock(@Nullable WorkbenchUpgradeKind kind, int width, int depth, int height,
-            int topShapeHeight, boolean extended) {
+    public MolecularAssemblerBlock(@Nullable WorkbenchUpgradeKind kind, boolean extended) {
         super(Properties.of().sound(SoundType.METAL).strength(3.0F, 6.0F).noOcclusion());
         this.kind = kind;
-        this.width = width;
-        this.depth = depth;
-        this.height = height;
-        this.topShapeHeight = topShapeHeight;
         this.extended = extended;
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(PART, 0));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     public @Nullable WorkbenchUpgradeKind getKind() {
@@ -87,49 +70,14 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
         return extended;
     }
 
-    public IntegerProperty partProperty() {
-        return PART;
-    }
-
-    public int getPart(BlockState state) {
-        return state.getValue(PART);
-    }
-
-    public boolean isRoot(BlockState state) {
-        return getPart(state) == 0;
-    }
-
-    public BlockPos getRootPos(BlockPos pos, BlockState state) {
-        if (!isValidPart(state)) {
-            return pos;
-        }
-        Direction facing = state.getValue(FACING);
-        int part = getPart(state);
-        int y = part / (width * depth);
-        int layerPart = part % (width * depth);
-        int z = layerPart / width;
-        int x = layerPart % width;
-        return pos.relative(facing.getCounterClockWise(), x).relative(facing, z).below(y);
-    }
-
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, PART);
+        builder.add(FACING);
     }
 
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getHorizontalDirection().getOpposite();
-        BlockPos root = context.getClickedPos();
-        Level level = context.getLevel();
-        for (int part = 0; part < partCount(); part++) {
-            BlockPos pos = partPos(root, facing, part);
-            if (level.isOutsideBuildHeight(pos) || !level.getWorldBorder().isWithinBounds(pos)
-                    || !level.getBlockState(pos).canBeReplaced(context)) {
-                return null;
-            }
-        }
-        return defaultBlockState().setValue(FACING, facing).setValue(PART, 0);
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
@@ -140,42 +88,41 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
             return;
         }
 
-        Direction facing = state.getValue(FACING);
-        for (int part = 1; part < partCount(); part++) {
-            level.setBlock(partPos(pos, facing, part), state.setValue(PART, part), Block.UPDATE_ALL);
-        }
-
         ResourceLocation blockId = isUniversal()
                 ? null
                 : stack.getItem() instanceof BlockItemDataAccessor accessor
                         ? accessor.getBlockId(stack)
                         : AETaCZWorkbenchIndex.getDefaultBlockId(this);
-        forEachPart(pos, facing, partPos -> {
-            BlockEntity blockEntity = level.getBlockEntity(partPos);
-            if (blockEntity instanceof AEMolecularAssemblerBlockEntity assembler) {
-                assembler.setId(blockId);
-                if (placer instanceof Player player) {
-                    assembler.setOwner(player);
-                }
+        if (level.getBlockEntity(pos) instanceof AEMolecularAssemblerBlockEntity assembler) {
+            assembler.setId(blockId);
+            if (placer instanceof Player player) {
+                assembler.setOwner(player);
             }
-        });
+        }
     }
 
     @Override
     public void playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide && player.isCreative()) {
-            BlockPos root = getRootPos(pos, state);
-            CREATIVE_REMOVALS.add(removalKey(level, root));
+            CREATIVE_REMOVALS.add(removalKey(level, pos));
         }
         super.playerWillDestroy(level, pos, state, player);
     }
 
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-        if (!level.isClientSide && !newState.is(this) && !removingParts) {
-            BlockPos root = getRootPos(pos, state);
-            boolean dropMachine = !CREATIVE_REMOVALS.remove(removalKey(level, root));
-            removeStructure(level, root, state, pos, dropMachine);
+        if (!level.isClientSide && !newState.is(this)) {
+            boolean dropMachine = !CREATIVE_REMOVALS.remove(removalKey(level, pos));
+            if (level.getBlockEntity(pos) instanceof AEMolecularAssemblerBlockEntity assembler) {
+                if (dropMachine) {
+                    Block.popResource(level, pos, assembler.createDropStack());
+                }
+                for (ItemStack stack : assembler.collectPendingDrops()) {
+                    Block.popResource(level, pos, stack);
+                }
+            } else if (dropMachine) {
+                Block.popResource(level, pos, createDropStack(null));
+            }
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }
@@ -188,7 +135,7 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, BlockGetter level, BlockPos pos,
             Player player) {
-        BlockEntity blockEntity = level.getBlockEntity(getRootPos(pos, state));
+        BlockEntity blockEntity = level.getBlockEntity(pos);
         if (blockEntity instanceof AEMolecularAssemblerBlockEntity assembler) {
             return assembler.createDropStack();
         }
@@ -209,16 +156,6 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
     }
 
     @Override
-    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        int part = getPart(state);
-        if (!isValidPart(state)) {
-            return Shapes.empty();
-        }
-        int y = part / (width * depth);
-        return y == height - 1 ? Block.box(0, 0, 0, 16, topShapeHeight, 16) : Block.box(0, 0, 0, 16, 16, 16);
-    }
-
-    @Override
     public BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
     }
@@ -233,65 +170,13 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
             BlockHitResult hit) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof AEMolecularAssemblerBlockEntity clicked) {
-            AEMolecularAssemblerBlockEntity root = clicked.getMenuRootAssembler();
-            if (root != null && root.mayOpenMenu(player)) {
+            if (clicked.mayOpenMenu(player)) {
                 NetworkHooks.openScreen(serverPlayer, new SimpleMenuProvider(
-                        (id, inventory, menuPlayer) -> new AEMolecularAssemblerMenu(id, inventory, root),
-                        root.getDisplayName()), buf -> buf.writeBlockPos(root.getBlockPos()));
+                        (id, inventory, menuPlayer) -> new AEMolecularAssemblerMenu(id, inventory, clicked),
+                        clicked.getDisplayName()), buf -> buf.writeBlockPos(pos));
             }
         }
         return InteractionResult.SUCCESS;
-    }
-
-    public BlockPos partPos(BlockPos root, Direction facing, int part) {
-        int y = part / (width * depth);
-        int layerPart = part % (width * depth);
-        int z = layerPart / width;
-        int x = layerPart % width;
-        return root.relative(facing.getClockWise(), x).relative(facing.getOpposite(), z).above(y);
-    }
-
-    public int partCount() {
-        return width * depth * height;
-    }
-
-    public boolean isValidPart(BlockState state) {
-        return getPart(state) < partCount();
-    }
-
-    private void removeOtherParts(Level level, BlockPos root, Direction facing, BlockPos keptPos) {
-        removingParts = true;
-        try {
-            forEachPart(root, facing, partPos -> {
-                BlockState partState = level.getBlockState(partPos);
-                if (!partPos.equals(keptPos) && partState.is(this) && getRootPos(partPos, partState).equals(root)) {
-                    level.setBlock(partPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL | Block.UPDATE_SUPPRESS_DROPS);
-                }
-            });
-        } finally {
-            removingParts = false;
-        }
-    }
-
-    private void removeStructure(Level level, BlockPos root, BlockState brokenState, BlockPos brokenPos,
-            boolean dropMachine) {
-        AEMolecularAssemblerBlockEntity rootEntity = level.getBlockEntity(root) instanceof AEMolecularAssemblerBlockEntity assembler
-                ? assembler
-                : null;
-        AEMolecularAssemblerBlockEntity brokenEntity = level.getBlockEntity(brokenPos) instanceof AEMolecularAssemblerBlockEntity assembler
-                ? assembler
-                : null;
-        if (dropMachine) {
-            ResourceLocation blockId = rootEntity != null ? rootEntity.getId()
-                    : brokenEntity != null ? brokenEntity.getId() : null;
-            Block.popResource(level, brokenPos, createDropStack(blockId));
-        }
-        if (rootEntity != null) {
-            for (ItemStack stack : rootEntity.collectPendingDrops()) {
-                Block.popResource(level, brokenPos, stack);
-            }
-        }
-        removeOtherParts(level, root, brokenState.getValue(FACING), brokenPos);
     }
 
     private ItemStack createDropStack(@Nullable ResourceLocation blockId) {
@@ -303,43 +188,7 @@ public class MolecularAssemblerBlock extends BaseEntityBlock {
                 .build();
     }
 
-    private static String removalKey(Level level, BlockPos root) {
-        return level.dimension().location() + "@" + root.asLong();
-    }
-
-    private void forEachPart(BlockPos root, Direction facing, java.util.function.Consumer<BlockPos> consumer) {
-        for (int part = 0; part < partCount(); part++) {
-            consumer.accept(partPos(root, facing, part));
-        }
-    }
-
-    public static final class Ammo extends MolecularAssemblerBlock {
-        public Ammo() {
-            super(WorkbenchUpgradeKind.AMMO_WORKBENCH, 2, 1, 2, 8);
-        }
-    }
-
-    public static final class Attachment extends MolecularAssemblerBlock {
-        public Attachment() {
-            super(WorkbenchUpgradeKind.ATTACHMENT_WORKBENCH, 2, 1, 2, 8);
-        }
-    }
-
-    public static final class Gun extends MolecularAssemblerBlock {
-        public Gun() {
-            super(WorkbenchUpgradeKind.GUN_SMITH_TABLE, 2, 2, 2, 12);
-        }
-    }
-
-    public static final class Universal extends MolecularAssemblerBlock {
-        public Universal() {
-            super(null, 2, 2, 2, 12);
-        }
-    }
-
-    public static final class Compact extends MolecularAssemblerBlock {
-        public Compact() {
-            super(null, 1, 1, 1, 16);
-        }
+    private static String removalKey(Level level, BlockPos pos) {
+        return level.dimension().location() + "@" + pos.asLong();
     }
 }

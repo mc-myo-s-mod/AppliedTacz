@@ -77,7 +77,7 @@ not add new assembler variants; custom workbench recipes still need a compatible
 Craft a dedicated assembler by combining the original **TaCZ workbench + AE2 Molecular Assembler +
 AE2 Pattern Provider**, one of each, in a crafting grid (shapeless). The three original TaCZ workbenches
 produce their matching dedicated assembler, retaining the workbench ID and recipe filter.
-Universal assemblers, including the legacy `molecular_assembler` and `molecular_assembler_universal`,
+Universal assemblers, including the single-block `molecular_assembler` alias,
 have no crafting recipe and are hidden from creative tabs and JEI/REI/EMI ingredient lists.
 Their registered IDs and existing placed blocks remain usable; use commands to obtain them.
 Additional gunpack workbenches retain their manual ME workbench upgrades, but do not produce assemblers.
@@ -91,15 +91,18 @@ The original animated prismatic light overlay is reused while online. Asset cred
 [AE2_ASSET_NOTICE.txt](common/src/main/resources/assets/appliedtacz/AE2_ASSET_NOTICE.txt).
 All four blockstates and item models reference the same `appliedtacz:block/tacz_assembler` model.
 Workbench-specific assembler items show the corresponding TaCZ workbench's 3D item model as an
-8 × 8 badge at the lower right of inventory icons, including legacy dedicated assemblers.
+8 × 8 badge at the lower right of inventory icons.
 The badge follows the stored workbench ID and TaCZ's GUI transforms; universal assemblers have no badge.
 Placed assemblers render a miniature
 of their TaCZ workbench inside the frame, using TaCZ's loaded model and texture rather than copied assets.
 The universal assembler displays the default Gun Smith Table when no workbench ID is assigned.
 Their IDs are `tacz_assembler_ammo`, `tacz_assembler_attachment`, `tacz_assembler_gun`, and
 `tacz_assembler_universal`. AE2's own assembler is unchanged.
-The earlier `molecular_assembler*` blocks retain their IDs, original sizes, and saved data for
-existing worlds; they are no longer the assembler choices shown in the creative tab.
+The former multi-block `molecular_assembler_gun`, `molecular_assembler_ammo`,
+`molecular_assembler_attachment`, and `molecular_assembler_universal` blocks and items have
+been removed, along with their models and multi-block placement logic. Existing worlds containing
+these removed IDs are not migrated; recover their contents before updating. Current single-block
+normal and Extended assemblers keep their IDs and saved crafting jobs.
 
 Connect the assembler to a powered ME network
 with crafting storage and a Crafting CPU. Encode the TaCZ ingredients and the exact result in
@@ -108,9 +111,6 @@ of its nine pattern slots. Valid patterns become available for autocrafting requ
 ME terminal; a separate Pattern Provider is not required.
 Every assembler validates the ingredients, quantities, and result. Dedicated assemblers also
 validate their workbench's recipe filter and tabs, even when TaCZ's default table filter is disabled.
-
-If using an earlier development build with 1 × 1 ammo assemblers, recover those blocks before
-updating and place them again afterward; the old placed structure is not expanded automatically.
 
 The five upgrade slots accept AE2 Acceleration Cards. With 0–5 cards, each new craft takes
 10/8/6/5/4/2 active server ticks respectively, matching AE2's full-power crafting speed.
@@ -134,13 +134,12 @@ Three pale-cyan orbital arcs and small moving light packets surround the workben
 smoothly turn orange, brighten, and rotate about 2.4–2.5 times faster; they ease back when crafting stops.
 These original, client-only effects fade beyond 16 blocks and disappear at 24 blocks;
 they use no copied assets or additional dependencies.
-The earlier assembly-line models retain their moving assembly heads. Completed items return to the
-ME network, where the requesting Crafting CPU receives them.
+Completed items return to the ME network, where the requesting Crafting CPU receives them.
 An external Pattern Provider can still supply processing patterns through an exposed side;
 those results return to that provider, including its result-lock handling.
 A blocked return keeps the output buffered instead of discarding it. Stored patterns, acceleration cards and
 in-progress output survive saves and are dropped when the machine is broken.
-Right-click any part of an assembler to open its AE2-style pattern and status screen.
+Right-click an assembler to open its AE2-style pattern and status screen.
 Its title uses `ME <translated TaCZ workbench name> Assembler`. It shows the ME connection, crafting state,
 acceleration slots and pending-output item, without raw IDs, return-buffer labels or extra help tooltips.
 Jade shows the translated assembler name, ME connection and crafting state.
