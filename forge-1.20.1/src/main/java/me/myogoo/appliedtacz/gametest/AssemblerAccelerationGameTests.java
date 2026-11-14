@@ -225,22 +225,64 @@ public final class AssemblerAccelerationGameTests {
             assembler.loadTag(tag);
             assembler.tickingRequest(assembler.getGridNode(), 1);
             ListTag afterTick = jobs(assembler);
-            helper.assertTrue(afterTick.size() == 3 && partialChest.getItem(0).getCount() == 64
-                    && afterTick.getCompound(1).getInt("PendingOutputCount") == 2
-                    && afterTick.getCompound(2).getInt("CraftTicksRemaining") == 1 && assembler.isCrafting(),
+            helper.assertTrue(afterTick.size() == 2 && partialChest.getItem(0).getCount() == 64
+                    && afterTick.getCompound(0).getInt("PendingOutputCount") == 2
+                    && afterTick.getCompound(1).getInt("CraftTicksRemaining") == 1 && assembler.isCrafting(),
                     "Expected blocked first job not to stop partial output or other timers");
             assembler.loadTag(assembler.saveWithFullMetadata());
             helper.assertTrue(jobs(assembler).equals(afterTick), "Expected partial remainder and routes after reload");
             partialChest.setItem(0, ItemStack.EMPTY);
             assembler.tickingRequest(assembler.getGridNode(), 1);
-            helper.assertTrue(jobs(assembler).size() == 1 && !assembler.isCrafting()
+            helper.assertTrue(jobs(assembler).isEmpty() && !assembler.isCrafting()
                     && partialChest.getItem(0).is(Items.DIAMOND) && partialChest.getItem(0).getCount() == 2
                     && otherChest.getItem(0).is(Items.EMERALD) && otherChest.getItem(0).getCount() == 2,
-                    "Expected independent completed routes and only the blocked internal job remaining");
+                    "Expected independent external routes and the internal output retained in the return buffer");
             List<ItemStack> drops = assembler.collectPendingDrops();
             helper.assertTrue(drops.stream().filter(stack -> stack.is(Items.DIAMOND))
                     .mapToInt(ItemStack::getCount).sum() == 130 && assembler.collectPendingDrops().isEmpty(),
                     "Expected only undelivered output to drop once");
+            helper.succeed();
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = AppliedTaCZ.MODID, template = "empty3x3x3")
+    public static void returnBufferPreservesOversizedOutputAcrossFullSlotsAndReload(GameTestHelper helper) {
+        helper.setBlock(ROOT, AETaCZBlock.TACZ_ASSEMBLER_AMMO.get());
+        helper.setBlock(ROOT.west(), AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.runAfterDelay(30, () -> {
+            var assembler = (AEMolecularAssemblerBlockEntity) helper.getBlockEntity(ROOT);
+            CompoundTag tag = assembler.saveWithFullMetadata();
+            ListTag pending = new ListTag();
+            pending.add(job(new ItemStack(Items.DIAMOND, 600), 2, true, null, null));
+            tag.put("Jobs", pending);
+            assembler.loadTag(tag);
+            assembler.tickingRequest(assembler.getGridNode(), 1);
+            helper.assertTrue(assembler.getReturnInventory().isEmpty(),
+                    "Expected unfinished output to remain inaccessible to return inventory");
+            assembler.tickingRequest(assembler.getGridNode(), 1);
+            helper.assertTrue(assembler.getReturnInventory().size() == 9
+                    && jobs(assembler).getCompound(0).getInt("PendingOutputCount") == 24,
+                    "Expected nine full stacks and the oversized remainder retained in the job");
+            CompoundTag saved = assembler.saveWithFullMetadata();
+            assembler.loadTag(saved);
+            helper.assertTrue(saved.getList("ReturnInventory", Tag.TAG_COMPOUND)
+                    .equals(assembler.saveWithFullMetadata().getList("ReturnInventory", Tag.TAG_COMPOUND)),
+                    "Expected all nine return slots to survive reload");
+            helper.assertTrue(!assembler.getCapability(appeng.capabilities.Capabilities.GENERIC_INTERNAL_INV,
+                    Direction.UP).isPresent(),
+                    "Expected no external return capability that could accept ingredients while the assembler is busy");
+            ItemStack taken = assembler.getReturnInventory().createMenuWrapper().extractItem(8, 64, false);
+            assembler.tickingRequest(assembler.getGridNode(), 1);
+            helper.assertTrue(taken.getCount() == 64 && jobs(assembler).isEmpty()
+                    && assembler.tickingRequest(assembler.getGridNode(), 1)
+                            != appeng.api.networking.ticking.TickRateModulation.SLEEP,
+                    "Expected freed GUI space to accept the remainder and blocked buffer to keep retrying");
+            List<ItemStack> drops = assembler.collectPendingDrops();
+            helper.assertTrue(drops.stream().filter(stack -> stack.is(Items.DIAMOND))
+                    .mapToInt(ItemStack::getCount).sum() + taken.getCount() == 600
+                    && assembler.collectPendingDrops().isEmpty(),
+                    "Expected GUI extraction and break drops to account for every item exactly once");
             helper.succeed();
         });
     }

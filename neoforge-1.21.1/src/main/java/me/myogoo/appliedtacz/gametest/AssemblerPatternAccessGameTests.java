@@ -106,8 +106,20 @@ public final class AssemblerPatternAccessGameTests {
                         .filter(candidate -> candidate.container == player.getInventory()
                                 && ItemStack.matches(candidate.getItem(), wrongWorkbench)).findFirst().orElseThrow();
                 menu.quickMoveStack(player, playerSlot.index);
-                helper.assertTrue(inventory.isEmpty() && player.getInventory().contains(wrongWorkbench),
-                        "Expected rejected shift click not to enter the pattern inventory");
+                helper.assertTrue(inventory.isEmpty() && assembler.getReturnInventory().isEmpty()
+                                && player.getInventory().contains(wrongWorkbench),
+                        "Expected rejected shift click to leave the pattern with the player, not in either machine inventory");
+                for (int i = 0; i < inventory.size(); i++) {
+                    inventory.setItemDirect(i, accepted.copy());
+                }
+                player.getInventory().setItem(0, accepted.copy());
+                menu.quickMoveStack(player, playerSlot.index);
+                helper.assertTrue(assembler.getReturnInventory().isEmpty()
+                                && ItemStack.matches(player.getInventory().getItem(0), accepted),
+                        "Expected excess valid patterns to stay with the player when every pattern slot is full");
+                for (int i = 0; i < inventory.size(); i++) {
+                    inventory.setItemDirect(i, ItemStack.EMPTY);
+                }
 
                 var terminalSlot = new FilteredInternalInventory(
                         assembler.getTerminalPatternInventory().getSlotInv(0), new IAEItemFilter() {});

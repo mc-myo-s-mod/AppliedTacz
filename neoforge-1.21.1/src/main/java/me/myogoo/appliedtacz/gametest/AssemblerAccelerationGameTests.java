@@ -138,11 +138,11 @@ public final class AssemblerAccelerationGameTests {
                             "Expected all jobs to advance together and retain their duration after card removal");
                 }
                 assembler.tickingRequest(assembler.getMainNode().getNode(), 1);
-                helper.assertTrue(!assembler.isCrafting() && assembler.isBusy(),
+                helper.assertTrue(!assembler.isCrafting() && !assembler.getReturnInventory().isEmpty(),
                         "Expected completion exactly at the accelerated duration");
                 for (Tag saved : savedJobs(assembler, helper)) {
                     helper.assertTrue(((CompoundTag) saved).getInt("CraftTicks") == 0,
-                            "Expected blocked results to retain their occupied job slots");
+                            "Expected any result that exceeds the return buffer to retain a completed job");
                 }
                 for (int tick = 0; tick < 3; tick++) {
                     assembler.tickingRequest(assembler.getMainNode().getNode(), 1);
@@ -262,6 +262,48 @@ public final class AssemblerAccelerationGameTests {
             assembler.getPatternInventory().setItemDirect(0, craft.pattern().copy());
             helper.assertTrue(assembler.pushPattern(PatternDetailsHelper.decodePattern(craft.pattern(), helper.getLevel()),
                     copyInputs(craft.inputs())), "Expected a new craft after the final job drained and reloaded");
+            helper.succeed();
+        });
+    }
+
+    @GameTest(template = "empty3x3x3")
+    public static void returnBufferPreservesOversizedOutputAcrossFullSlotsAndReload(GameTestHelper helper) {
+        helper.setBlock(ROOT, ModBlocks.TACZ_ASSEMBLER_AMMO.get());
+        helper.setBlock(ROOT.west(), AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.runAfterDelay(30, () -> {
+            AEMolecularAssemblerBlockEntity assembler = helper.getBlockEntity(ROOT);
+            var registries = helper.getLevel().registryAccess();
+            CompoundTag tag = assembler.saveWithFullMetadata(registries);
+            ListTag pending = new ListTag();
+            pending.add(savedJob(helper, Items.DIAMOND, 600, 2, null, null));
+            tag.put("Jobs", pending);
+            assembler.loadTag(tag, registries);
+            assembler.tickingRequest(assembler.getMainNode().getNode(), 1);
+            helper.assertTrue(assembler.getReturnInventory().isEmpty(),
+                    "Expected unfinished output to remain inaccessible to return inventory");
+            assembler.tickingRequest(assembler.getMainNode().getNode(), 1);
+            helper.assertTrue(assembler.getReturnInventory().size() == 9
+                    && savedJobs(assembler, helper).getCompound(0).getInt("PendingOutputCount") == 24,
+                    "Expected nine full stacks and the oversized remainder retained in the job");
+            CompoundTag saved = assembler.saveWithFullMetadata(registries);
+            assembler.loadTag(saved, registries);
+            helper.assertTrue(saved.getList("ReturnInventory", Tag.TAG_COMPOUND)
+                    .equals(assembler.saveWithFullMetadata(registries).getList("ReturnInventory", Tag.TAG_COMPOUND)),
+                    "Expected all nine return slots to survive reload");
+            helper.assertTrue(helper.getLevel().getCapability(appeng.api.AECapabilities.GENERIC_INTERNAL_INV,
+                    helper.absolutePos(ROOT), Direction.UP) == null,
+                    "Expected no external return capability that could accept ingredients while the assembler is busy");
+            ItemStack taken = assembler.getReturnInventory().createMenuWrapper().extractItem(8, 64, false);
+            assembler.tickingRequest(assembler.getMainNode().getNode(), 1);
+            helper.assertTrue(taken.getCount() == 64 && savedJobs(assembler, helper).isEmpty()
+                    && assembler.tickingRequest(assembler.getMainNode().getNode(), 1)
+                            != appeng.api.networking.ticking.TickRateModulation.SLEEP,
+                    "Expected freed GUI space to accept the remainder and blocked buffer to keep retrying");
+            List<ItemStack> drops = assembler.collectPendingDrops();
+            helper.assertTrue(drops.stream().filter(stack -> stack.is(Items.DIAMOND))
+                    .mapToInt(ItemStack::getCount).sum() + taken.getCount() == 600
+                    && assembler.collectPendingDrops().isEmpty(),
+                    "Expected GUI extraction and break drops to account for every item exactly once");
             helper.succeed();
         });
     }

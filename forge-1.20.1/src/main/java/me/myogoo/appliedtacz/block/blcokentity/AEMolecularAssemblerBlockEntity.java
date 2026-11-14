@@ -30,6 +30,7 @@ import appeng.capabilities.Capabilities;
 import appeng.core.definitions.AEItems;
 import appeng.crafting.pattern.AEProcessingPattern;
 import appeng.helpers.patternprovider.PatternContainer;
+import appeng.helpers.patternprovider.PatternProviderReturnInventory;
 import appeng.me.helpers.BlockEntityNodeListener;
 import appeng.me.helpers.IGridConnectedBlockEntity;
 import appeng.me.helpers.MachineSource;
@@ -105,6 +106,10 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
                 }
             });
     private final MachineSource actionSource = new MachineSource(this);
+    private final PatternProviderReturnInventory returnInventory = new PatternProviderReturnInventory(() -> {
+        saveChanges();
+        wakeDevice();
+    });
     private final IUpgradeInventory upgrades = UpgradeInventories.forMachine(getBlockState().getBlock(),
             UPGRADE_SLOTS, this::saveChanges);
     private List<IPatternDetails> patterns = List.of();
@@ -201,6 +206,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
         }
         this.patternInventory.clear();
         this.patternInventory.readFromNBT(tag, PATTERNS_TAG);
+        this.returnInventory.readFromTag(tag.getList("ReturnInventory", Tag.TAG_COMPOUND));
         this.upgrades.clear();
         this.upgrades.readFromNBT(tag, "Upgrades");
         updatePatterns();
@@ -225,6 +231,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
         super.saveAdditional(tag);
         this.mainNode.saveToNBT(tag);
         this.patternInventory.writeToNBT(tag, PATTERNS_TAG);
+        tag.put("ReturnInventory", this.returnInventory.writeToTag());
         this.upgrades.writeToNBT(tag, "Upgrades");
         if (this.id != null) {
             tag.putString(ID_TAG, this.id.toString());
@@ -318,12 +325,12 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(1, 1, this.jobs.isEmpty(), true);
+        return new TickingRequest(1, 1, this.jobs.isEmpty() && this.returnInventory.isEmpty(), true);
     }
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
-        if (this.jobs.isEmpty()) {
+        if (this.jobs.isEmpty() && this.returnInventory.isEmpty()) {
             return TickRateModulation.SLEEP;
         }
         if (!this.mainNode.isActive()) {
@@ -343,7 +350,12 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
                 saveChanges();
             }
         }
-        return this.jobs.isEmpty() ? TickRateModulation.SLEEP
+        var grid = this.mainNode.getGrid();
+        if (grid != null && this.returnInventory.injectIntoNetwork(grid.getStorageService().getInventory(),
+                this.actionSource, stack -> {})) {
+            saveChanges();
+        }
+        return this.jobs.isEmpty() && this.returnInventory.isEmpty() ? TickRateModulation.SLEEP
                 : this.jobs.stream().anyMatch(job -> job.remainingTicks > 0)
                         ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
     }
@@ -352,7 +364,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     public void onMainNodeStateChanged(IGridNodeListener.State reason) {
         syncNetworkState();
         updatePatterns();
-        if (!this.jobs.isEmpty() && this.mainNode.isActive()) {
+        if ((!this.jobs.isEmpty() || !this.returnInventory.isEmpty()) && this.mainNode.isActive()) {
             wakeDevice();
         }
     }
@@ -375,7 +387,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
     }
 
     public void popPendingOutput() {
-        if (this.level != null && !this.jobs.isEmpty()) {
+        if (this.level != null) {
             for (ItemStack stack : collectPendingDrops()) {
                 Block.popResource(this.level, this.worldPosition, stack);
             }
@@ -384,6 +396,8 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     public List<ItemStack> collectPendingDrops() {
         List<ItemStack> drops = new ArrayList<>();
+        this.returnInventory.addDrops(drops, this.level, this.worldPosition);
+        this.returnInventory.clear();
         for (ItemStack pattern : this.patternInventory) {
             if (!pattern.isEmpty()) {
                 drops.add(pattern.copy());
@@ -409,6 +423,10 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     public AppEngInternalInventory getPatternInventory() {
         return this.patternInventory;
+    }
+
+    public PatternProviderReturnInventory getReturnInventory() {
+        return this.returnInventory;
     }
 
     @Override
@@ -663,11 +681,7 @@ public class AEMolecularAssemblerBlockEntity extends AEBaseBlockEntity
 
     private boolean tryReturnOutput(CraftJob job) {
         if (job.internalOutput) {
-            var grid = this.mainNode.getGrid();
-            if (grid == null) {
-                return false;
-            }
-            long inserted = grid.getStorageService().getInventory().insert(AEItemKey.of(job.output),
+            long inserted = this.returnInventory.insert(AEItemKey.of(job.output),
                     job.output.getCount(), Actionable.MODULATE, this.actionSource);
             if (inserted <= 0) {
                 return false;

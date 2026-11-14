@@ -50,7 +50,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -62,6 +61,7 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -870,7 +870,7 @@ public final class AppliedTaczGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(templateNamespace = AppliedTaCZ.MODID, template = "empty3x3x3")
-    public static void assemblerMenuPreviewIsReadOnlySnapshot(GameTestHelper helper) {
+    public static void assemblerMenuHasNineLiveReturnSlots(GameTestHelper helper) {
         MolecularAssemblerBlock block = (MolecularAssemblerBlock) AETaCZBlock.TACZ_ASSEMBLER_AMMO.get();
         placeAssemblerFacing(helper, block, assemblerStack(block, WorkbenchUpgradeKind.AMMO_WORKBENCH.defaultBlockId()),
                 Direction.NORTH);
@@ -881,10 +881,6 @@ public final class AppliedTaczGameTests {
         player.setPos(playerPos.x, playerPos.y, playerPos.z);
 
         AEMolecularAssemblerMenu menu = new AEMolecularAssemblerMenu(1, player.getInventory(), assembler);
-        if (!ItemStack.isSameItemSameTags(menu.getPendingOutput(), new ItemStack(Items.DIAMOND))
-                || menu.getPendingOutput().getCount() != 3) {
-            helper.fail("Expected menu to show pending output snapshot", ROOT);
-        }
         if (assembler.isNetworkPowered() != assembler.getMainNode().isPowered()
                 || assembler.isNetworkOnline() != assembler.getMainNode().isOnline()
                 || assembler.hasBootedGrid() != assembler.getMainNode().hasGridBooted()) {
@@ -894,32 +890,46 @@ public final class AppliedTaczGameTests {
             helper.fail("Expected menu to expose dedicated assembler workbench id", ROOT);
         }
 
-        if (!menu.getSlot(0).remove(1).isEmpty()) {
-            helper.fail("Expected preview slot remove to return empty", ROOT);
-        }
-        if (menu.getSlot(0).mayPickup(player)) {
-            helper.fail("Expected preview slot pickup to be blocked", ROOT);
-        }
-        if (menu.getSlot(0).mayPlace(new ItemStack(Items.DIAMOND))) {
-            helper.fail("Expected preview slot placement to be blocked", ROOT);
-        }
-        menu.clicked(0, 0, ClickType.PICKUP, player);
-        if (!menu.quickMoveStack(player, 0).isEmpty()) {
-            helper.fail("Expected preview slot shift-click to return empty", ROOT);
-        }
+        var returnSlots = menu.getSlots(appeng.menu.SlotSemantics.STORAGE);
+        helper.assertTrue(returnSlots.size() == 9, "Expected exactly nine live return slots");
+        helper.assertTrue(returnSlots.stream().allMatch(slot -> slot.mayPlace(new ItemStack(Items.DIRT))),
+                "Expected return slots to accept player inputs like a Pattern Provider");
+        menu.setCarried(new ItemStack(Items.DIRT, 17));
+        menu.clicked(returnSlots.get(0).index, 0, ClickType.PICKUP, player);
+        helper.assertTrue(menu.getCarried().isEmpty() && returnSlots.get(0).getItem().getCount() == 17,
+                "Expected normal click to move every carried item into the offline return buffer");
+        player.getInventory().setItem(0, new ItemStack(Items.DIRT, 23));
+        menu.quickMoveStack(player, menu.getSlots(appeng.menu.SlotSemantics.PLAYER_HOTBAR).get(0).index);
+        helper.assertTrue(player.getInventory().getItem(0).isEmpty()
+                        && returnSlots.get(0).getItem().is(Items.DIRT)
+                        && returnSlots.get(0).getItem().getCount() == 40
+                        && assembler.getPatternInventory().isEmpty(),
+                "Expected ordinary shift-click to merge into the return buffer without item loss");
+        menu.clicked(returnSlots.get(0).index, 0, ClickType.PICKUP, player);
+        helper.assertTrue(assembler.getReturnInventory().isEmpty() && menu.getCarried().is(Items.DIRT)
+                        && menu.getCarried().getCount() == 40,
+                "Expected buffered player items to remain fully recoverable while offline");
+        menu.setCarried(ItemStack.EMPTY);
+        assembler.getReturnInventory().setStack(8, new GenericStack(AEItemKey.of(Items.EMERALD), 3));
+        helper.assertTrue(returnSlots.get(8).getItem().is(Items.EMERALD)
+                && returnSlots.get(8).getItem().getCount() == 3, "Expected ninth slot to reflect real buffer");
+        menu.quickMoveStack(player, returnSlots.get(8).index);
+        helper.assertTrue(assembler.getReturnInventory().isEmpty()
+                && player.getInventory().items.stream().anyMatch(stack -> stack.is(Items.EMERALD)
+                        && stack.getCount() == 3), "Expected return stack to shift-click into player inventory");
         ItemStack pattern = encodeCraft(findCraft(helper, WorkbenchUpgradeKind.AMMO_WORKBENCH));
-        if (menu.slots.size() != 51 || !menu.getSlot(1).mayPlace(pattern)
-                || menu.getSlot(1).mayPlace(new ItemStack(Items.DIRT))) {
-            helper.fail("Expected one preview, nine patterns, five upgrades and 36 player slots", ROOT);
+        if (menu.slots.size() != 59 || !menu.getSlot(0).mayPlace(pattern)
+                || menu.getSlot(0).mayPlace(new ItemStack(Items.DIRT))) {
+            helper.fail("Expected nine return slots, nine patterns, five upgrades and 36 player slots", ROOT);
         }
         player.getInventory().setItem(0, pattern.copy());
         menu.quickMoveStack(player, menu.getSlots(appeng.menu.SlotSemantics.PLAYER_HOTBAR).get(0).index);
         if (!ItemStack.matches(assembler.getPatternInventory().getStackInSlot(0), pattern)
                 || !player.getInventory().getItem(0).isEmpty()
-                || assembler.getPendingOutput().getCount() != 3 || menu.getPendingOutput().getCount() != 3) {
+                || assembler.getPendingOutput().getCount() != 3) {
             helper.fail("Expected hotbar shift-click to insert the encoded pattern into the assembler", ROOT);
         }
-        menu.quickMoveStack(player, 1);
+        menu.quickMoveStack(player, 0);
         if (!assembler.getPatternInventory().getStackInSlot(0).isEmpty()
                 || player.getInventory().items.stream().noneMatch(stack -> ItemStack.matches(stack, pattern))) {
             helper.fail("Expected pattern shift-click to return the encoded pattern to the player", ROOT);
@@ -939,13 +949,55 @@ public final class AppliedTaczGameTests {
                 || player.getInventory().items.stream().noneMatch(AEItems.SPEED_CARD::isSameAs)) {
             helper.fail("Expected upgrade shift-click to return the acceleration card", ROOT);
         }
-        ItemStack returnedCopy = menu.getPendingOutput();
-        returnedCopy.shrink(2);
-        if (!ItemStack.isSameItemSameTags(assembler.getPendingOutput(), menu.getPendingOutput())
-                || assembler.getPendingOutput().getCount() != 3 || menu.getPendingOutput().getCount() != 3) {
-            helper.fail("Expected preview interaction to leave assembler pending output unchanged", ROOT);
-        }
+        helper.assertTrue(assembler.getPendingOutput().getCount() == 3,
+                "Expected return inventory interaction to leave unfinished craft unchanged");
         helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(templateNamespace = AppliedTaCZ.MODID, template = "empty3x3x3", timeoutTicks = 160)
+    public static void manuallyInsertedReturnsRetryAndWakeOnActiveNetwork(GameTestHelper helper) {
+        helper.setBlock(ROOT, AETaCZBlock.TACZ_ASSEMBLER_UNIVERSAL.get());
+        var assembler = (AEMolecularAssemblerBlockEntity) helper.getBlockEntity(ROOT);
+        var player = helper.makeMockPlayer();
+        var pos = helper.absolutePos(ROOT);
+        player.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
+        var menu = new AEMolecularAssemblerMenu(22, player.getInventory(), assembler);
+        var slot = menu.getSlots(appeng.menu.SlotSemantics.STORAGE).get(0);
+        menu.setCarried(new ItemStack(Items.COPPER_INGOT, 17));
+        menu.clicked(slot.index, 0, ClickType.PICKUP, player);
+        helper.assertTrue(menu.getCarried().isEmpty() && slot.getItem().getCount() == 17,
+                "Expected player insertion into the offline return buffer");
+        helper.setBlock(ENERGY, AEBlocks.CREATIVE_ENERGY_CELL.block());
+        helper.startSequence()
+                .thenExecuteAfter(30, () -> {
+                    helper.assertTrue(assembler.getMainNode().isActive() && slot.getItem().getCount() == 17,
+                            "Expected an active network without storage to retain every buffered item");
+                    helper.setBlock(ENERGY.north(), AEBlocks.CHEST.block());
+                    ((ChestBlockEntity) helper.getBlockEntity(ENERGY.north())).getInternalInventory()
+                            .setItemDirect(1, AEItems.ITEM_CELL_4K.stack());
+                })
+                .thenWaitUntil(() -> {
+                    var stored = assembler.getMainNode().getGrid().getStorageService().getInventory()
+                            .getAvailableStacks().get(AEItemKey.of(Items.COPPER_INGOT));
+                    helper.assertTrue(stored == 17 && assembler.getReturnInventory().isEmpty(),
+                            "Expected a waiting return buffer to retry when ME storage becomes available");
+                })
+                .thenExecuteAfter(10, () -> {
+                    player.getInventory().setItem(0, new ItemStack(Items.COPPER_INGOT, 23));
+                    menu.quickMoveStack(player,
+                            menu.getSlots(appeng.menu.SlotSemantics.PLAYER_HOTBAR).get(0).index);
+                    helper.assertTrue(player.getInventory().getItem(0).isEmpty(),
+                            "Expected ordinary shift-click into an idle active assembler");
+                })
+                .thenWaitUntil(() -> {
+                    var stored = assembler.getMainNode().getGrid().getStorageService().getInventory()
+                            .getAvailableStacks().get(AEItemKey.of(Items.COPPER_INGOT));
+                    helper.assertTrue(stored == 40 && assembler.getReturnInventory().isEmpty()
+                                    && assembler.getPatternInventory().isEmpty() && !assembler.isCrafting(),
+                            "Expected manual insertion to wake network return ticking without crafting or item loss");
+                })
+                .thenSucceed();
     }
 
     @PrefixGameTestTemplate(false)

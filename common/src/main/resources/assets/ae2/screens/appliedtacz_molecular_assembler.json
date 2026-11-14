@@ -9,8 +9,5 @@
       "scale": 0.7,
       "position": {"left": 8, "top": 20}
     }
-  },
-  "slots": {
-    "MACHINE_OUTPUT": {"left": 8, "top": 97}
   }
 }

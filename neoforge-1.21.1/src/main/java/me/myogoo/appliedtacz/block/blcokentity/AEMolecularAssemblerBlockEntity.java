@@ -22,6 +22,7 @@ import appeng.api.upgrades.UpgradeInventories;
 import appeng.core.definitions.AEItems;
 import appeng.crafting.pattern.AEProcessingPattern;
 import appeng.helpers.patternprovider.PatternContainer;
+import appeng.helpers.patternprovider.PatternProviderReturnInventory;
 import appeng.me.helpers.MachineSource;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
@@ -70,6 +71,10 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
     private static final String JOBS_TAG = "Jobs";
 
     private final List<CraftJob> jobs = new ArrayList<>();
+    private final PatternProviderReturnInventory returnInventory = new PatternProviderReturnInventory(() -> {
+        saveChanges();
+        wakeTicker();
+    });
     private boolean clientCrafting;
     private final IUpgradeInventory upgrades = UpgradeInventories.forMachine(getBlockState().getBlock(),
             UPGRADE_SLOTS, this::saveChanges);
@@ -95,6 +100,10 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     public InternalInventory getPatternInventory() {
         return patterns;
+    }
+
+    public PatternProviderReturnInventory getReturnInventory() {
+        return returnInventory;
     }
 
     @Override
@@ -316,13 +325,13 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     @Override
     public TickingRequest getTickingRequest(IGridNode node) {
-        return new TickingRequest(1, 1, jobs.isEmpty());
+        return new TickingRequest(1, 1, jobs.isEmpty() && returnInventory.isEmpty());
     }
 
     @Override
     public TickRateModulation tickingRequest(IGridNode node, int ticksSinceLastCall) {
         if (!getMainNode().isActive()) {
-            return jobs.isEmpty() ? TickRateModulation.SLEEP : TickRateModulation.SLOWER;
+            return jobs.isEmpty() && returnInventory.isEmpty() ? TickRateModulation.SLEEP : TickRateModulation.SLOWER;
         }
         boolean crafting = isCrafting();
         for (CraftJob job : jobs) {
@@ -335,10 +344,14 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
             }
         }
         jobs.removeIf(job -> job.output.isEmpty());
+        var storage = getStorage();
+        if (storage != null && returnInventory.injectIntoNetwork(storage, new MachineSource(this), stack -> {})) {
+            saveChanges();
+        }
         if (crafting != isCrafting()) {
             markForUpdate();
         }
-        return jobs.isEmpty() ? TickRateModulation.SLEEP
+        return jobs.isEmpty() && returnInventory.isEmpty() ? TickRateModulation.SLEEP
                 : isCrafting() ? TickRateModulation.URGENT : TickRateModulation.SLOWER;
     }
 
@@ -349,11 +362,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
         }
         int before = job.output.getCount();
         if (job.returnPos == null) {
-            var storage = getStorage();
-            if (storage == null) {
-                return;
-            }
-            long inserted = storage.insert(AEItemKey.of(job.output), before, Actionable.MODULATE,
+            long inserted = returnInventory.insert(AEItemKey.of(job.output), before, Actionable.MODULATE,
                     new MachineSource(this));
             job.output.shrink((int) inserted);
         } else {
@@ -378,6 +387,8 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
 
     public List<ItemStack> collectPendingDrops() {
         List<ItemStack> drops = new ArrayList<>();
+        returnInventory.addDrops(drops, getLevel(), getBlockPos());
+        returnInventory.clear();
         for (ItemStack upgrade : upgrades) {
             if (!upgrade.isEmpty()) {
                 drops.add(upgrade.copy());
@@ -411,6 +422,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
         super.loadTag(tag, registries);
         patterns.clear();
         patterns.readFromNBT(tag, "Patterns", registries);
+        returnInventory.readFromTag(tag.getList("ReturnInventory", Tag.TAG_COMPOUND), registries);
         upgrades.clear();
         upgrades.readFromNBT(tag, "Upgrades", registries);
         jobs.clear();
@@ -442,6 +454,7 @@ public class AEMolecularAssemblerBlockEntity extends AEGunSmithTableBlockEntity
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         patterns.writeToNBT(tag, "Patterns", registries);
+        tag.put("ReturnInventory", returnInventory.writeToTag(registries));
         upgrades.writeToNBT(tag, "Upgrades", registries);
         ListTag savedJobs = new ListTag();
         for (CraftJob job : jobs) {

@@ -1,9 +1,11 @@
 package me.myogoo.appliedtacz.menu;
 
 import appeng.menu.AEBaseMenu;
+import appeng.api.crafting.PatternDetailsHelper;
 import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
-import appeng.menu.slot.InaccessibleSlot;
+import appeng.menu.slot.AppEngSlot;
+import appeng.helpers.patternprovider.PatternProviderReturnInventory;
 import appeng.menu.slot.RestrictedInputSlot;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.upgrades.IUpgradeInventory;
@@ -16,9 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import org.jetbrains.annotations.Nullable;
@@ -29,8 +29,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
 
     private final @Nullable AEMolecularAssemblerBlockEntity blockEntity;
     private final IUpgradeInventory upgrades;
-    private final AppEngInternalInventory previewInventory = new AppEngInternalInventory(1);
-    private final Slot previewSlot;
 
     @GuiSync(3)
     public String workbenchId = "";
@@ -39,7 +37,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
             @Nullable AEMolecularAssemblerBlockEntity blockEntity) {
         super(TYPE, id, inventory, resolveMenuRoot(inventory, blockEntity));
         this.blockEntity = resolveMenuRoot(inventory, blockEntity);
-        this.previewSlot = addSlot(new PreviewSlot(this.previewInventory, 0), SlotSemantics.MACHINE_OUTPUT);
         InternalInventory patterns = this.blockEntity == null
                 ? new AppEngInternalInventory(AEMolecularAssemblerBlockEntity.PATTERN_SLOTS)
                 : this.blockEntity.getPatternInventory();
@@ -56,6 +53,18 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
                         AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS, () -> {})
                 : this.blockEntity.getUpgrades();
         setupUpgrades(this.upgrades);
+        var returnInventory = (this.blockEntity == null
+                ? new PatternProviderReturnInventory(() -> {})
+                : this.blockEntity.getReturnInventory()).createMenuWrapper();
+        for (int i = 0; i < PatternProviderReturnInventory.NUMBER_OF_SLOTS; i++) {
+            addSlot(new AppEngSlot(returnInventory, i) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    // Rejected or excess patterns must not fall through to the network return buffer.
+                    return !PatternDetailsHelper.isEncodedPattern(stack) && super.mayPlace(stack);
+                }
+            }, SlotSemantics.STORAGE);
+        }
         createPlayerInventorySlots(inventory);
         if (isServerSide()) {
             updateState();
@@ -100,28 +109,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
                 && (player.level().isClientSide() || this.blockEntity.mayOpenMenu(player));
     }
 
-    @Override
-    public ItemStack quickMoveStack(Player player, int idx) {
-        return idx == this.previewSlot.index ? ItemStack.EMPTY : super.quickMoveStack(player, idx);
-    }
-
-    @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        if (slotId == this.previewSlot.index) {
-            return;
-        }
-        super.clicked(slotId, button, clickType, player);
-    }
-
-    @Override
-    public boolean canDragTo(Slot slot) {
-        return slot != this.previewSlot && super.canDragTo(slot);
-    }
-
-    public ItemStack getPendingOutput() {
-        return this.previewInventory.getStackInSlot(0).copy();
-    }
-
     public IUpgradeInventory getUpgrades() {
         return this.upgrades;
     }
@@ -129,22 +116,8 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
     private void updateState() {
         if (this.blockEntity == null || !this.blockEntity.isValidMenuRoot()) {
             this.workbenchId = "";
-            this.previewInventory.setItemDirect(0, ItemStack.EMPTY);
             return;
         }
         this.workbenchId = this.blockEntity.getMenuWorkbenchId();
-        this.previewInventory.setItemDirect(0, this.blockEntity.getPendingOutput());
-    }
-
-    private static final class PreviewSlot extends InaccessibleSlot {
-        private PreviewSlot(AppEngInternalInventory inventory, int invSlot) {
-            super(inventory, invSlot);
-            setNotDraggable();
-        }
-
-        @Override
-        public ItemStack remove(int amount) {
-            return ItemStack.EMPTY;
-        }
     }
 }

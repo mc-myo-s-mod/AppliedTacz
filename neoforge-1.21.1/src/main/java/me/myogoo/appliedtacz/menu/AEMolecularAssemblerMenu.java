@@ -1,6 +1,7 @@
 package me.myogoo.appliedtacz.menu;
 
 import appeng.api.util.DimensionalBlockPos;
+import appeng.api.crafting.PatternDetailsHelper;
 import appeng.menu.AEBaseMenu;
 import appeng.menu.SlotSemantics;
 import appeng.menu.guisync.GuiSync;
@@ -10,6 +11,8 @@ import appeng.api.upgrades.UpgradeInventories;
 import appeng.core.definitions.AEBlocks;
 import appeng.core.definitions.AEItems;
 import appeng.menu.slot.RestrictedInputSlot;
+import appeng.menu.slot.AppEngSlot;
+import appeng.helpers.patternprovider.PatternProviderReturnInventory;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.Platform;
 import me.myogoo.appliedtacz.block.MolecularAssemblerBlock;
@@ -17,13 +20,9 @@ import me.myogoo.appliedtacz.block.blcokentity.AEMolecularAssemblerBlockEntity;
 import me.myogoo.appliedtacz.registry.ModMenus;
 import me.myogoo.appliedtacz.util.AETaCZWorkbenchIds;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -43,7 +42,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
 
     private final @Nullable AEMolecularAssemblerBlockEntity blockEntity;
     private final IUpgradeInventory upgrades;
-    private final Container preview = new SimpleContainer(1);
 
     @GuiSync(3)
     public String workbenchId = "";
@@ -52,22 +50,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
             @Nullable AEMolecularAssemblerBlockEntity blockEntity) {
         super(ModMenus.AE_MOLECULAR_ASSEMBLER.get(), id, inventory, blockEntity);
         this.blockEntity = blockEntity;
-        addSlot(new Slot(preview, 0, 0, 0) {
-            @Override
-            public boolean mayPlace(ItemStack stack) {
-                return false;
-            }
-
-            @Override
-            public boolean mayPickup(Player player) {
-                return false;
-            }
-
-            @Override
-            public ItemStack remove(int amount) {
-                return ItemStack.EMPTY;
-            }
-        }, SlotSemantics.MACHINE_OUTPUT);
         InternalInventory patterns = blockEntity == null
                 ? new AppEngInternalInventory(AEMolecularAssemblerBlockEntity.PATTERN_SLOTS)
                 : blockEntity.getPatternInventory();
@@ -84,9 +66,20 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
                         AEMolecularAssemblerBlockEntity.UPGRADE_SLOTS, () -> {})
                 : blockEntity.getUpgrades();
         setupUpgrades(this.upgrades);
+        var returnInventory = (blockEntity == null
+                ? new PatternProviderReturnInventory(() -> {})
+                : blockEntity.getReturnInventory()).createMenuWrapper();
+        for (int i = 0; i < PatternProviderReturnInventory.NUMBER_OF_SLOTS; i++) {
+            addSlot(new AppEngSlot(returnInventory, i) {
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    // Rejected or excess patterns must not fall through to the network return buffer.
+                    return !PatternDetailsHelper.isEncodedPattern(stack) && super.mayPlace(stack);
+                }
+            }, SlotSemantics.STORAGE);
+        }
         createPlayerInventorySlots(inventory);
         updateState();
-        updatePreview();
     }
 
     @Override
@@ -95,8 +88,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
             updateState();
             if (!isStillValidRoot(getPlayer())) {
                 setValidMenu(false);
-            } else {
-                updatePreview();
             }
         }
         super.broadcastChanges();
@@ -105,27 +96,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
     @Override
     public boolean stillValid(Player player) {
         return isValidMenu() && isStillValidRoot(player);
-    }
-
-    @Override
-    public void clicked(int slotId, int button, ClickType clickType, Player player) {
-        if (slotId != 0) {
-            super.clicked(slotId, button, clickType, player);
-        }
-    }
-
-    @Override
-    public ItemStack quickMoveStack(Player player, int index) {
-        return index == 0 ? ItemStack.EMPTY : super.quickMoveStack(player, index);
-    }
-
-    @Override
-    public boolean canDragTo(Slot slot) {
-        return slot.index != 0 && super.canDragTo(slot);
-    }
-
-    public ItemStack getPendingOutput() {
-        return preview.getItem(0).copy();
     }
 
     public IUpgradeInventory getUpgrades() {
@@ -138,13 +108,6 @@ public class AEMolecularAssemblerMenu extends AEBaseMenu {
 
     private void updateState() {
         workbenchId = getWorkbenchId(blockEntity);
-    }
-
-    private void updatePreview() {
-        ItemStack stack = blockEntity != null ? blockEntity.getPendingOutputPreview() : ItemStack.EMPTY;
-        if (!ItemStack.matches(stack, preview.getItem(0))) {
-            preview.setItem(0, stack);
-        }
     }
 
     private boolean isStillValidRoot(Player player) {
